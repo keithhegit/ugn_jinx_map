@@ -10,4 +10,10 @@ export default defineConfig({
       external: ["fsevents"],
     },
   },
+  resolve: {
+    alias: {
+      path: "path-browserify",
+      "node:path": "path-browserify",
+    },
+  },
 });
