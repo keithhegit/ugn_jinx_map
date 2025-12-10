@@ -1,0 +1,47 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg-dark: #0f0f11;
+  --terminal-green: #33ff00;
+  --terminal-amber: #ffb000;
+}
+
+body {
+  background-color: var(--bg-dark);
+  color: #e0e0e0;
+  margin: 0;
+  overflow: hidden; /* 防止页面本身滚动，交给地图组件处理 */
+}
+
+/* Azgaar 地图特定的交互样式 */
+/* 当 SVG 注入后，我们可以控制内部元素的样式 */
+
+/* 让所有的 Marker (标记) 鼠标变成手型 */
+g[id^="marker"] {
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+g[id^="marker"]:hover {
+  filter: drop-shadow(0 0 5px var(--terminal-amber));
+}
+
+/* 也可以针对 Label (标签) */
+g[id^="label"] {
+  pointer-events: none; /* 让点击穿透标签，点到下面的地形 */
+  text-shadow: 0 0 2px #000;
+}
+
+/* 废土风滚动条 */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #1a1a1a; 
+}
+::-webkit-scrollbar-thumb {
+  background: #444; 
+  border-radius: 4px;
+}
