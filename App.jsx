@@ -119,15 +119,15 @@ const App = () => {
 
               {/* 地图渲染组件 */}
               <TransformComponent wrapperClass="!w-full !h-full" contentClass="!w-full !h-full">
-                <div 
+                <div
                   className="w-full h-full flex items-center justify-center cursor-crosshair outline-none"
-                  onClick={handleMapClick}
                   aria-label="废土地图视图"
                 >
-                  <SVG 
+                  <SVG
                     src={mapUrl}
                     className="w-full h-full transition-opacity duration-700"
                     style={{ opacity: loading ? 0 : 1 }}
+                    onClick={handleMapClick}
                     onLoad={() => setLoading(false)}
                     onError={(error) => {
                       console.error("Map Load Error:", error);
