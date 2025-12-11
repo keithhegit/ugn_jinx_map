@@ -138,11 +138,14 @@ const App = () => {
       </div>
 
       {/* 下方信息栏（流式布局，避免被裁剪） */}
-      <div className="w-full bg-black/90 border-t border-green-500/30 text-gray-100 p-4 space-y-3">
-        {!selectedMarker && <div className="text-sm text-gray-400">点击任意信号标记以查看情报。</div>}
-        {selectedMarker && (
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
+      {/* 装饰性网格背景 (当SVG未加载时) */}
+      {loading && <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-10 pointer-events-none"></div>}
+
+      {/* 弹窗：点击 marker 后的确认进入 */}
+      {selectedMarker && (
+        <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/50 backdrop-blur">
+          <div className="w-[min(520px,calc(100%-2rem))] bg-black border border-green-500/50 shadow-[0_0_20px_rgba(34,197,94,0.35)] rounded-md overflow-hidden">
+            <div className="bg-green-900/20 p-3 border-b border-green-500/30 flex justify-between items-center">
               <div className="font-bold text-green-400 flex items-center gap-2">
                 <Radio size={16} /> SIGNAL_DETECTED
               </div>
@@ -154,89 +157,54 @@ const App = () => {
                 <X size={18} />
               </button>
             </div>
-
-            <div>
-              <label className="text-xs text-gray-500 block mb-1">IDENTIFIER</label>
-              <div className="text-lg font-bold text-white leading-tight flex items-center gap-2">
-                <span aria-hidden="true">{selectedMarker.icon}</span>
-                <span>{selectedMarker.name}</span>
-              </div>
-            </div>
-            
-            <div className="flex flex-wrap items-center gap-2 text-xs text-gray-400 uppercase tracking-wide">
-              <span className="px-2 py-1 border border-green-500/40 rounded bg-green-900/10">{selectedMarker.type}</span>
-              {selectedMarker.coordinates && (
-                <span className="px-2 py-1 border border-gray-700 rounded bg-gray-900/40">
-                  {`x:${selectedMarker.coordinates.x} y:${selectedMarker.coordinates.y}`}
-                </span>
-              )}
-            </div>
-
-            <div className="grid grid-cols-2 gap-2">
-              <div className="bg-gray-900/70 p-2 rounded border border-gray-800">
-                <label className="text-[10px] text-gray-500 block">RADIATION</label>
-                <div className="text-yellow-500 font-mono">{selectedMarker.radiation}</div>
-              </div>
-              <div className="bg-gray-900/70 p-2 rounded border border-gray-800">
-                <label className="text-[10px] text-gray-500 block">STATUS</label>
-                <div
-                  className={clsx('font-mono', {
-                    'text-green-500': selectedMarker.status === 'ACTIVE',
-                    'text-red-500': selectedMarker.status !== 'ACTIVE'
-                  })}
-                >
-                  {selectedMarker.status}
+            <div className="p-4 space-y-3 text-sm">
+              <div>
+                <label className="text-xs text-gray-500 block mb-1">IDENTIFIER</label>
+                <div className="text-lg font-bold text-white leading-tight flex items-center gap-2">
+                  <span aria-hidden="true">{selectedMarker.icon}</span>
+                  <span>{selectedMarker.name}</span>
                 </div>
               </div>
-            </div>
 
-            <div className="bg-gray-900/70 p-3 rounded border border-gray-800 leading-relaxed text-gray-200">
-              {selectedMarker.note}
-            </div>
-
-            {(selectedMarker.dungeonUrl || selectedMarker.npcEmbed) && (
-              <div className="space-y-3">
-                {selectedMarker.dungeonUrl && (
-                  <div className="space-y-1">
-                    <label className="text-xs text-gray-500 block">DUNGEON MAP</label>
-                    <iframe
-                      src={selectedMarker.dungeonUrl}
-                      width="100%"
-                      height="240"
-                      title="Dungeon map"
-                      className="border border-gray-800 rounded bg-black"
-                      loading="lazy"
-                    />
-                  </div>
-                )}
-                {selectedMarker.npcEmbed && (
-                  <div className="space-y-1">
-                    <label className="text-xs text-gray-500 block">NPC / THREAT FEED</label>
-                    <iframe
-                      src={selectedMarker.npcEmbed}
-                      width="100%"
-                      height="300"
-                      title="NPC intel"
-                      className="border border-gray-800 rounded bg-black"
-                      loading="lazy"
-                    />
-                  </div>
+              <div className="flex flex-wrap items-center gap-2 text-xs text-gray-400 uppercase tracking-wide">
+                <span className="px-2 py-1 border border-green-500/40 rounded bg-green-900/10">{selectedMarker.type}</span>
+                {selectedMarker.coordinates && (
+                  <span className="px-2 py-1 border border-gray-700 rounded bg-gray-900/40">
+                    {`x:${selectedMarker.coordinates.x} y:${selectedMarker.coordinates.y}`}
+                  </span>
                 )}
               </div>
-            )}
 
-            <button
-              className="w-full bg-green-700/30 hover:bg-green-700/50 text-green-100 border border-green-600/60 py-2 text-xs uppercase tracking-wider transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 rounded"
-              aria-label="建立信号连接"
-            >
-              Establish Connection
-            </button>
+              <div className="bg-gray-900/70 p-3 rounded border border-gray-800 leading-relaxed text-gray-200">
+                {selectedMarker.note}
+              </div>
+
+              <div className="flex gap-2">
+                <button
+                  className="flex-1 bg-green-700/30 hover:bg-green-700/50 text-green-100 border border-green-600/60 py-2 text-xs uppercase tracking-wider transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 rounded"
+                  aria-label="进入目标"
+                  onClick={() => {
+                    const target = selectedMarker.dungeonUrl || selectedMarker.npcEmbed;
+                    if (target) {
+                      window.open(target, "_blank", "noreferrer");
+                    }
+                  }}
+                  disabled={!selectedMarker.dungeonUrl && !selectedMarker.npcEmbed}
+                >
+                  进入
+                </button>
+                <button
+                  className="flex-1 bg-gray-700/40 hover:bg-gray-700/60 text-gray-100 border border-gray-600/60 py-2 text-xs uppercase tracking-wider transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 rounded"
+                  aria-label="关闭"
+                  onClick={() => setSelectedMarker(null)}
+                >
+                  关闭
+                </button>
+              </div>
+            </div>
           </div>
-        )}
-      </div>
-
-      {/* 装饰性网格背景 (当SVG未加载时) */}
-      {loading && <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-10 pointer-events-none"></div>}
+        </div>
+      )}
     </div>
   );
 };
