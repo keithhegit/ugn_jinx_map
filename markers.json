@@ -9,7 +9,7 @@
   { "i": 8, "x": 673.4, "y": 760.2, "icon": "🚨", "type": "Unknown", "name": "marker-marker8", "note": "紧急广播节点，塔身刻满求救讯息，天线已被改装成方向性干扰发射器。" },
   { "i": 9, "x": 578.2, "y": 202.2, "icon": "🚨", "type": "Unknown", "name": "marker-marker9", "note": "北部哨站残骸，地下尚有备用电源舱，可为设备充电但伴随高噪声脉冲。" },
   { "i": 10, "x": 951, "y": 511.2, "icon": "👁️", "type": "Unknown", "name": "marker-marker10", "note": "光学监测塔，镜面仍可用，能反射或聚焦阳光制造短时高温。" },
-  { "i": 11, "x": 956.4, "y": 691.02, "icon": "👁️", "type": "Danger", "name": "伪装定居点", "note": "看起来像正常的幸存者营地，甚至还会发出友好的求救信号。但其实已被“干扰者”完全渗透，它们模仿人类的行为，只为捕食路过的拾荒者。" },
+  { "i": 11, "x": 956.4, "y": 691.02, "icon": "👁️", "type": "Danger", "name": "伪装定居点", "note": "看起来像正常的幸存者营地，甚至还会发出友好的求救信号。但其实已被“干扰者”完全渗透，它们模仿人类的行为，只为捕食路过的拾荒者。", "dungeonUrl": "https://watabou.github.io/cave-generator/" },
   { "i": 12, "x": 584.8, "y": 681.1, "icon": "👁️", "type": "Unknown", "name": "marker-marker12", "note": "高架观察巢，能俯瞰风暴带，偶尔可拦截寡头频段的散射信号。" },
   { "i": 13, "x": 558, "y": 465.2, "icon": "📡", "type": "Tech", "name": "隐蔽的中继节点", "note": "“回声计划”的原/?seed=13型机测试点。由 Jinx 用旧微波炉变压器和从街机厅拆下的芯片改装而成，勉强能穿透电磁风暴发送短波信号。", "dungeonUrl": "https://watabou.github.io/one-page-dungeon" },
   { "i": 14, "x": 505.6, "y": 579.6, "icon": "🔧", "type": "Unknown", "name": "marker-marker14", "note": "废弃维修棚，仍存有抗噪滤波组件与能量导轨，可提升临时无线中继的稳定度。" },

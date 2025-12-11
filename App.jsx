@@ -198,28 +198,33 @@ const App = () => {
                   {selectedMarker.note}
                 </div>
 
-                <div className="flex gap-2">
-                  <button
-                    className="flex-1 bg-green-700/30 hover:bg-green-700/50 text-green-100 border border-green-600/60 py-2 text-xs uppercase tracking-wider transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 rounded disabled:opacity-40"
-                    aria-label="进入目标"
-                    onClick={() => {
-                      const target = selectedMarker.dungeonUrl || selectedMarker.npcEmbed;
-                      if (target) {
-                        window.open(target, "_blank", "noreferrer");
-                      }
-                    }}
-                    disabled={!selectedMarker.dungeonUrl && !selectedMarker.npcEmbed}
-                  >
-                    进入
-                  </button>
-                  <button
-                    className="flex-1 bg-gray-700/40 hover:bg-gray-700/60 text-gray-100 border border-gray-600/60 py-2 text-xs uppercase tracking-wider transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 rounded"
-                    aria-label="关闭"
-                    onClick={() => setSelectedMarker(null)}
-                  >
-                    关闭
-                  </button>
-                </div>
+                {(() => {
+                  const targetLink =
+                    selectedMarker.dungeonUrl ||
+                    selectedMarker.npcEmbed ||
+                    (selectedMarker.type === "Sanctuary" ? "https://aitown.uggamer.com/" : null);
+                  return (
+                    <div className="flex gap-2">
+                      <button
+                        className="flex-1 bg-green-700/30 hover:bg-green-700/50 text-green-100 border border-green-600/60 py-2 text-xs uppercase tracking-wider transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 rounded disabled:opacity-40"
+                        aria-label="进入目标"
+                        onClick={() => {
+                          if (targetLink) window.open(targetLink, "_blank", "noreferrer");
+                        }}
+                        disabled={!targetLink}
+                      >
+                        进入
+                      </button>
+                      <button
+                        className="flex-1 bg-gray-700/40 hover:bg-gray-700/60 text-gray-100 border border-gray-600/60 py-2 text-xs uppercase tracking-wider transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 rounded"
+                        aria-label="关闭"
+                        onClick={() => setSelectedMarker(null)}
+                      >
+                        关闭
+                      </button>
+                    </div>
+                  );
+                })()}
               </div>
             </div>
           </div>,
