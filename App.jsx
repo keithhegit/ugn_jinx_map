@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { createPortal } from 'react-dom';
 import SVG from 'react-inlinesvg';
 import { TransformWrapper, TransformComponent } from 'react-zoom-pan-pinch';
 import { Radio, X, Terminal } from 'lucide-react';
@@ -93,7 +94,7 @@ const App = () => {
           minScale={0.6}
           maxScale={6}
           centerZoomedOut={false}
-          limitToBounds={false}
+          limitToBounds={true}
           initialPositionX={viewport.w / 2 - centerPoint.x}
           initialPositionY={viewport.h / 2 - centerPoint.y}
           wheel={{ step: 0.12 }}
@@ -140,70 +141,90 @@ const App = () => {
       {/* 装饰性网格背景 (当SVG未加载时) */}
       {loading && <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-10 pointer-events-none"></div>}
 
-      {/* 弹窗：点击 marker 后的确认进入（全屏遮罩，固定） */}
+      {/* 调试徽标，确认选中状态 */}
       {selectedMarker && (
-        <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/70 backdrop-blur-sm">
-          <div className="w-[min(520px,calc(100%-2rem))] bg-black border border-green-500/50 shadow-[0_0_24px_rgba(34,197,94,0.35)] rounded-md overflow-hidden">
-            <div className="bg-green-900/20 p-3 border-b border-green-500/30 flex justify-between items-center">
-              <div className="font-bold text-green-400 flex items-center gap-2">
-                <Radio size={16} /> SIGNAL_DETECTED
-              </div>
-              <button
-                onClick={() => setSelectedMarker(null)}
-                className="hover:text-white text-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 rounded"
-                aria-label="关闭信号弹窗"
-              >
-                <X size={18} />
-              </button>
-            </div>
-            <div className="p-4 space-y-3 text-sm">
-              <div>
-                <label className="text-xs text-gray-500 block mb-1">IDENTIFIER</label>
-                <div className="text-lg font-bold text-white leading-tight flex items-center gap-2">
-                  <span aria-hidden="true">{selectedMarker.icon}</span>
-                  <span>{selectedMarker.name}</span>
-                </div>
-              </div>
-
-              <div className="flex flex-wrap items-center gap-2 text-xs text-gray-400 uppercase tracking-wide">
-                <span className="px-2 py-1 border border-green-500/40 rounded bg-green-900/10">{selectedMarker.type}</span>
-                {selectedMarker.coordinates && (
-                  <span className="px-2 py-1 border border-gray-700 rounded bg-gray-900/40">
-                    {`x:${selectedMarker.coordinates.x} y:${selectedMarker.coordinates.y}`}
-                  </span>
-                )}
-              </div>
-
-              <div className="bg-gray-900/70 p-3 rounded border border-gray-800 leading-relaxed text-gray-200">
-                {selectedMarker.note}
-              </div>
-
-              <div className="flex gap-2">
-                <button
-                  className="flex-1 bg-green-700/30 hover:bg-green-700/50 text-green-100 border border-green-600/60 py-2 text-xs uppercase tracking-wider transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 rounded"
-                  aria-label="进入目标"
-                  onClick={() => {
-                    const target = selectedMarker.dungeonUrl || selectedMarker.npcEmbed;
-                    if (target) {
-                      window.open(target, "_blank", "noreferrer");
-                    }
-                  }}
-                  disabled={!selectedMarker.dungeonUrl && !selectedMarker.npcEmbed}
-                >
-                  进入
-                </button>
-                <button
-                  className="flex-1 bg-gray-700/40 hover:bg-gray-700/60 text-gray-100 border border-gray-600/60 py-2 text-xs uppercase tracking-wider transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 rounded"
-                  aria-label="关闭"
-                  onClick={() => setSelectedMarker(null)}
-                >
-                  关闭
-                </button>
-              </div>
-            </div>
-          </div>
+        <div className="fixed left-3 top-16 sm:top-20 z-[9999] px-2 py-1 text-xs text-black bg-green-300 rounded shadow">
+          Selected: {selectedMarker.id}
         </div>
       )}
+
+      {/* 全屏遮罩弹窗（Portal，避免被遮挡） */}
+      {selectedMarker &&
+        createPortal(
+          <div
+            style={{
+              position: "fixed",
+              inset: 0,
+              zIndex: 9998,
+              background: "rgba(0,0,0,0.75)",
+              backdropFilter: "blur(3px)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <div className="w-[min(560px,calc(100%-2rem))] bg-black border border-green-500/50 shadow-[0_0_24px_rgba(34,197,94,0.35)] rounded-md overflow-hidden">
+              <div className="bg-green-900/20 p-3 border-b border-green-500/30 flex justify-between items-center">
+                <div className="font-bold text-green-400 flex items-center gap-2">
+                  <Radio size={16} /> SIGNAL_DETECTED
+                </div>
+                <button
+                  onClick={() => setSelectedMarker(null)}
+                  className="hover:text-white text-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 rounded"
+                  aria-label="关闭信号弹窗"
+                >
+                  <X size={18} />
+                </button>
+              </div>
+              <div className="p-4 space-y-3 text-sm">
+                <div>
+                  <label className="text-xs text-gray-500 block mb-1">IDENTIFIER</label>
+                  <div className="text-lg font-bold text-white leading-tight flex items-center gap-2">
+                    <span aria-hidden="true">{selectedMarker.icon}</span>
+                    <span>{selectedMarker.name}</span>
+                  </div>
+                </div>
+
+                <div className="flex flex-wrap items-center gap-2 text-xs text-gray-400 uppercase tracking-wide">
+                  <span className="px-2 py-1 border border-green-500/40 rounded bg-green-900/10">{selectedMarker.type}</span>
+                  {selectedMarker.coordinates && (
+                    <span className="px-2 py-1 border border-gray-700 rounded bg-gray-900/40">
+                      {`x:${selectedMarker.coordinates.x} y:${selectedMarker.coordinates.y}`}
+                    </span>
+                  )}
+                </div>
+
+                <div className="bg-gray-900/70 p-3 rounded border border-gray-800 leading-relaxed text-gray-200 whitespace-pre-wrap">
+                  {selectedMarker.note}
+                </div>
+
+                <div className="flex gap-2">
+                  <button
+                    className="flex-1 bg-green-700/30 hover:bg-green-700/50 text-green-100 border border-green-600/60 py-2 text-xs uppercase tracking-wider transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 rounded disabled:opacity-40"
+                    aria-label="进入目标"
+                    onClick={() => {
+                      const target = selectedMarker.dungeonUrl || selectedMarker.npcEmbed;
+                      if (target) {
+                        window.open(target, "_blank", "noreferrer");
+                      }
+                    }}
+                    disabled={!selectedMarker.dungeonUrl && !selectedMarker.npcEmbed}
+                  >
+                    进入
+                  </button>
+                  <button
+                    className="flex-1 bg-gray-700/40 hover:bg-gray-700/60 text-gray-100 border border-gray-600/60 py-2 text-xs uppercase tracking-wider transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 rounded"
+                    aria-label="关闭"
+                    onClick={() => setSelectedMarker(null)}
+                  >
+                    关闭
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>,
+          document.body
+        )}
     </div>
   );
 };
