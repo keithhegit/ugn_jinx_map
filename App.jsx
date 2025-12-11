@@ -42,10 +42,11 @@ const App = () => {
   };
 
   const handleMapClick = (event) => {
-    const markerGroup = event.target.closest('g[id^="marker"]');
+    // Azgaar 有的导出为 <g id="markerX">，有的导出为 <svg id="markerX">
+    const markerElement = event.target.closest('[id^="marker"]');
 
-    if (markerGroup) {
-      const markerInfo = resolveMarkerInfo(markerGroup);
+    if (markerElement) {
+      const markerInfo = resolveMarkerInfo(markerElement);
       if (markerInfo) {
         setSelectedMarker(markerInfo);
         return;
