@@ -106,8 +106,8 @@ const App = () => {
                 className="w-full h-full flex items-center justify-center cursor-crosshair outline-none touch-none select-none"
                 style={{ touchAction: "none" }}
                 aria-label="废土地图视图"
-                onClick={handleMapClick}
-                onTouchEnd={handleMapClick}
+                onClickCapture={handleMapClick}
+                onTouchEndCapture={handleMapClick}
               >
                 <SVG
                   src={mapUrl}
