@@ -1,5 +1,4 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { createPortal } from 'react-dom';
 import SVG from 'react-inlinesvg';
 import { TransformWrapper, TransformComponent } from 'react-zoom-pan-pinch';
 import { Radio, X, Terminal } from 'lucide-react';
@@ -140,89 +139,6 @@ const App = () => {
 
       {/* 装饰性网格背景 (当SVG未加载时) */}
       {loading && <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-10 pointer-events-none"></div>}
-
-      {/* 调试徽标，确认选中状态 */}
-      {selectedMarker && (
-        <div className="fixed left-3 top-16 sm:top-20 z-[9999] px-2 py-1 text-xs text-black bg-green-300 rounded shadow">
-          Selected: {selectedMarker.id}
-        </div>
-      )}
-
-      {/* 全屏遮罩弹窗（Portal，避免被遮挡） */}
-      {selectedMarker &&
-        createPortal(
-          (() => {
-            const targetLink =
-              selectedMarker.dungeonUrl ||
-              selectedMarker.npcEmbed ||
-              (selectedMarker.type === "Sanctuary" ? "https://aitown.uggamer.com/" : null);
-
-            return (
-              <div className="fixed inset-0 z-[9998] flex items-center justify-center bg-black/75 backdrop-blur-sm">
-                <div className="w-[min(620px,calc(100%-2rem))] bg-[#0b1020] border border-green-500/40 shadow-[0_0_28px_rgba(34,197,94,0.35)] rounded-lg overflow-hidden">
-                  <div className="bg-green-900/25 p-4 border-b border-green-500/30 flex justify-between items-center">
-                    <div className="font-bold text-green-400 flex items-center gap-2 tracking-widest">
-                      <Radio size={16} /> SIGNAL_DETECTED
-                    </div>
-                    <button
-                      onClick={() => setSelectedMarker(null)}
-                      className="hover:text-white text-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 rounded"
-                      aria-label="关闭信号弹窗"
-                    >
-                      <X size={18} />
-                    </button>
-                  </div>
-                  <div className="p-5 space-y-5 text-sm">
-                    <div className="space-y-2">
-                      <label className="text-xs text-gray-500 block">IDENTIFIER</label>
-                      <div className="text-xl font-bold text-white leading-tight flex items-center gap-3">
-                        <span aria-hidden="true" className="text-2xl">
-                          {selectedMarker.icon}
-                        </span>
-                        <span>{selectedMarker.name}</span>
-                      </div>
-                      <div className="flex flex-wrap items-center gap-2 text-xs text-gray-300 uppercase tracking-wide">
-                        <span className="px-2 py-1 border border-green-500/40 rounded bg-green-900/15">
-                          {selectedMarker.type}
-                        </span>
-                        {selectedMarker.coordinates && (
-                          <span className="px-2 py-1 border border-gray-700 rounded bg-gray-900/40">
-                            {`x:${selectedMarker.coordinates.x} y:${selectedMarker.coordinates.y}`}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-
-                    <div className="bg-gray-900/70 p-3 rounded border border-gray-800 leading-relaxed text-gray-200 whitespace-pre-wrap">
-                      {selectedMarker.note}
-                    </div>
-
-                    <div className="flex gap-3">
-                      <button
-                        className="flex-1 bg-green-700/35 hover:bg-green-700/55 text-green-50 border border-green-600/60 py-2.5 text-xs uppercase tracking-wider transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 rounded disabled:opacity-40"
-                        aria-label="进入目标"
-                        onClick={() => {
-                          if (targetLink) window.open(targetLink, "_blank", "noreferrer");
-                        }}
-                        disabled={!targetLink}
-                      >
-                        进入
-                      </button>
-                      <button
-                        className="flex-1 bg-gray-700/50 hover:bg-gray-700/70 text-gray-100 border border-gray-600/60 py-2.5 text-xs uppercase tracking-wider transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 rounded"
-                        aria-label="关闭"
-                        onClick={() => setSelectedMarker(null)}
-                      >
-                        关闭
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            );
-          })(),
-          document.body
-        )}
     </div>
   );
 };
