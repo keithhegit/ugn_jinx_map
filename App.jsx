@@ -136,16 +136,10 @@ const App = () => {
         </TransformWrapper>
       </div>
 
-      {/* 信息弹窗 (右侧固定 / 移动端底部) */}
+      {/* 信息弹窗：固定定位，始终可见 */}
       {selectedMarker && (
-        <div className="pointer-events-none absolute inset-0 z-30 flex justify-center md:justify-end items-end md:items-start p-3 md:p-6">
-          <div
-            className={clsx(
-              "pointer-events-auto w-full md:w-[360px] max-w-xl bg-black/90 border border-green-500/50 shadow-[0_0_20px_rgba(34,197,94,0.25)] backdrop-blur-md",
-              "rounded-md overflow-hidden",
-              "animate-in fade-in duration-150",
-            )}
-          >
+        <div className="fixed right-3 top-16 sm:top-20 z-40 w-[min(440px,calc(100%-1.5rem))] sm:w-[420px]">
+          <div className="bg-black/92 border border-green-500/50 shadow-[0_0_24px_rgba(34,197,94,0.35)] backdrop-blur-lg rounded-md overflow-hidden animate-in fade-in duration-150">
             <div className="bg-green-900/20 p-3 border-b border-green-500/30 flex justify-between items-center">
               <h3 className="font-bold text-green-400 flex items-center gap-2">
                 <Radio size={16} /> SIGNAL_DETECTED
@@ -158,7 +152,7 @@ const App = () => {
                 <X size={18} />
               </button>
             </div>
-            <div className="p-4 space-y-3 text-sm max-h-[65vh] md:max-h-[calc(100vh-120px)] overflow-y-auto">
+            <div className="p-4 space-y-3 text-sm max-h-[calc(100vh-120px)] overflow-y-auto">
               <div>
                 <label className="text-xs text-gray-500 block mb-1">IDENTIFIER</label>
                 <div className="text-lg font-bold text-white leading-tight flex items-center gap-2">
