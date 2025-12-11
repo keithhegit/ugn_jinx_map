@@ -58,6 +58,7 @@ const App = () => {
     if (markerElement) {
       const markerInfo = resolveMarkerInfo(markerElement);
       if (markerInfo) {
+        console.log("setSelectedMarker", markerInfo);
         setSelectedMarker(markerInfo);
         return;
       }
@@ -136,10 +137,11 @@ const App = () => {
         </TransformWrapper>
       </div>
 
-      {/* 信息弹窗：固定定位，始终可见 */}
+      {/* 信息弹窗：固定定位 + 半透明遮罩，确保可见 */}
       {selectedMarker && (
-        <div className="fixed right-3 top-16 sm:top-20 z-40 w-[min(440px,calc(100%-1.5rem))] sm:w-[420px]">
-          <div className="bg-black/92 border border-green-500/50 shadow-[0_0_24px_rgba(34,197,94,0.35)] backdrop-blur-lg rounded-md overflow-hidden animate-in fade-in duration-150">
+        <div className="fixed inset-0 z-50 pointer-events-none">
+          <div className="absolute inset-0 bg-black/30 backdrop-blur-[1px]" />
+          <div className="pointer-events-auto absolute right-3 top-16 sm:top-20 w-[min(440px,calc(100%-1.5rem))] sm:w-[420px] bg-black/92 border border-green-500/50 shadow-[0_0_24px_rgba(34,197,94,0.35)] backdrop-blur-lg rounded-md overflow-hidden animate-in fade-in duration-150">
             <div className="bg-green-900/20 p-3 border-b border-green-500/30 flex justify-between items-center">
               <h3 className="font-bold text-green-400 flex items-center gap-2">
                 <Radio size={16} /> SIGNAL_DETECTED
@@ -236,6 +238,13 @@ const App = () => {
 
       {/* 装饰性网格背景 (当SVG未加载时) */}
       {loading && <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-10 pointer-events-none"></div>}
+
+      {/* 调试：当前选中标记提示 */}
+      {selectedMarker && (
+        <div className="fixed left-3 top-16 sm:top-20 z-50 px-2 py-1 text-xs text-black bg-green-300 rounded shadow">
+          Selected: {selectedMarker.id}
+        </div>
+      )}
     </div>
   );
 };
