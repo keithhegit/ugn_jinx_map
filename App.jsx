@@ -75,7 +75,7 @@ const App = () => {
 
   return (
     <div
-      className="w-screen min-h-screen flex flex-col relative font-mono text-gray-200 bg-[#0b1020]"
+      className="w-screen min-h-screen h-screen flex flex-col relative font-mono text-gray-200 bg-[#0b1020] overflow-hidden"
       onKeyDown={handleKeyDown}
       tabIndex={0}
       aria-label="Echo map interface"
@@ -87,7 +87,7 @@ const App = () => {
       </header>
 
       {/* 地图区域 */}
-      <div className="flex-1 min-h-[60vh] relative overflow-hidden">
+      <div className="flex-1 h-full relative overflow-hidden">
         <TransformWrapper
           initialScale={1.1}
           minScale={0.6}
@@ -137,14 +137,13 @@ const App = () => {
         </TransformWrapper>
       </div>
 
-      {/* 下方信息栏（流式布局，避免被裁剪） */}
       {/* 装饰性网格背景 (当SVG未加载时) */}
       {loading && <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-10 pointer-events-none"></div>}
 
-      {/* 弹窗：点击 marker 后的确认进入 */}
+      {/* 弹窗：点击 marker 后的确认进入（全屏遮罩，固定） */}
       {selectedMarker && (
-        <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/50 backdrop-blur">
-          <div className="w-[min(520px,calc(100%-2rem))] bg-black border border-green-500/50 shadow-[0_0_20px_rgba(34,197,94,0.35)] rounded-md overflow-hidden">
+        <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/70 backdrop-blur-sm">
+          <div className="w-[min(520px,calc(100%-2rem))] bg-black border border-green-500/50 shadow-[0_0_24px_rgba(34,197,94,0.35)] rounded-md overflow-hidden">
             <div className="bg-green-900/20 p-3 border-b border-green-500/30 flex justify-between items-center">
               <div className="font-bold text-green-400 flex items-center gap-2">
                 <Radio size={16} /> SIGNAL_DETECTED
