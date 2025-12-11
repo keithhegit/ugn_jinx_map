@@ -8,6 +8,7 @@ import markers from './markers.json';
 const App = () => {
   const [selectedMarker, setSelectedMarker] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [isPanning, setIsPanning] = useState(false);
    const [viewport, setViewport] = useState({ w: typeof window !== 'undefined' ? window.innerWidth : 1280, h: typeof window !== 'undefined' ? window.innerHeight : 720 });
   const primaryMapSrc = import.meta.env.VITE_MAP_SRC || "https://pub-c98d5902eedf42f6a9765dfad981fd88.r2.dev/map/nomeiland_jinx.svg";
   const fallbackMapSrc = "/map.svg";
@@ -103,7 +104,10 @@ const App = () => {
           wheel={{ step: 0.12 }}
           pinch={{ step: 0.12 }}
           doubleClick={{ mode: "zoomIn", step: 0.3 }}
-          panning={{ velocityDisabled: true }}
+          panning={{ velocityDisabled: true, excluded: ["iframe", "button"] }}
+          onPanningStart={() => setIsPanning(true)}
+          onPanningStop={() => setIsPanning(false)}
+          onZoomStop={() => setIsPanning(false)}
         >
           {({ zoomIn, zoomOut, resetTransform }) => (
             <>
@@ -136,13 +140,18 @@ const App = () => {
               <TransformComponent wrapperClass="!w-full !h-full" contentClass="!w-full !h-full">
                 <div
                   className="w-full h-full flex items-center justify-center cursor-crosshair outline-none touch-none select-none"
+                  style={{ touchAction: "none" }}
                   aria-label="废土地图视图"
+                  onPointerUp={(e) => {
+                    if (!isPanning) {
+                      handleMapClick(e);
+                    }
+                  }}
                 >
                   <SVG
                     src={mapUrl}
                     className="w-full h-full transition-opacity duration-700 select-none"
                     style={{ opacity: loading ? 0 : 1 }}
-                    onClick={handleMapClick}
                     onLoad={() => setLoading(false)}
                     onError={(error) => {
                       console.error("Map Load Error:", error);
