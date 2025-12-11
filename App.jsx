@@ -53,6 +53,7 @@ const App = () => {
   };
 
   const handleMapClick = (event) => {
+    if (isPanning) return;
     // Azgaar 有的导出为 <g id="markerX">，有的导出为 <svg id="markerX">
     const markerElement = event.target.closest('[id^="marker"]');
 
@@ -80,15 +81,10 @@ const App = () => {
       tabIndex={0}
       aria-label="Echo map interface"
     >
-      {/* HUD: 顶部状态栏 */}
-      <header className="absolute top-0 left-0 w-full z-10 bg-black/80 backdrop-blur-sm border-b border-gray-700 p-3 flex justify-between items-center px-4 sm:px-6 pointer-events-none">
-        <div className="flex items-center gap-2 pointer-events-auto">
-          <Terminal className="text-green-500 w-5 h-5" />
-          <span className="text-green-500 font-bold tracking-widest">ECHO_LINK_V1.1</span>
-        </div>
-        <div className="text-[11px] text-gray-400 hidden sm:block">
-          SYS: ONLINE · PINCH/DRAG TO MOVE · DOUBLE TAP TO ZOOM
-        </div>
+      {/* HUD: 精简顶部栏（去掉提示文案与按钮） */}
+      <header className="absolute top-0 left-0 w-full z-10 bg-black/70 backdrop-blur-sm border-b border-gray-800 p-2 flex items-center gap-2 pointer-events-none">
+        <Terminal className="text-green-500 w-4 h-4 pointer-events-auto" />
+        <span className="text-green-500 font-bold tracking-widest text-sm pointer-events-auto">ECHO_LINK_V1.1</span>
       </header>
 
       {/* 地图区域 */}
@@ -109,69 +105,38 @@ const App = () => {
           onPanningStop={() => setIsPanning(false)}
           onZoomStop={() => setIsPanning(false)}
         >
-          {({ zoomIn, zoomOut, resetTransform }) => (
-            <>
-              {/* 地图控制按钮 (悬浮) */}
-              <div className="absolute bottom-4 right-4 sm:bottom-6 sm:right-6 z-20 flex flex-col gap-2">
-                <button
-                  onClick={() => zoomIn()}
-                  className="bg-gray-800/80 backdrop-blur border border-gray-600 hover:bg-gray-700 transition focus:outline-none focus:ring-2 focus:ring-green-500 rounded p-2"
-                  aria-label="放大"
-                >
-                  <ZoomIn size={20} />
-                </button>
-                <button
-                  onClick={() => zoomOut()}
-                  className="bg-gray-800/80 backdrop-blur border border-gray-600 hover:bg-gray-700 transition focus:outline-none focus:ring-2 focus:ring-green-500 rounded p-2"
-                  aria-label="缩小"
-                >
-                  <ZoomOut size={20} />
-                </button>
-                <button
-                  onClick={() => resetTransform()}
-                  className="bg-gray-800/80 backdrop-blur border border-gray-600 hover:bg-gray-700 transition focus:outline-none focus:ring-2 focus:ring-green-500 rounded p-2"
-                  aria-label="重置视图"
-                >
-                  <MapIcon size={20} />
-                </button>
-              </div>
-
-              {/* 地图渲染组件 */}
-              <TransformComponent wrapperClass="!w-full !h-full" contentClass="!w-full !h-full">
-                <div
-                  className="w-full h-full flex items-center justify-center cursor-crosshair outline-none touch-none select-none"
-                  style={{ touchAction: "none" }}
-                  aria-label="废土地图视图"
-                  onPointerUp={(e) => {
-                    if (!isPanning) {
-                      handleMapClick(e);
+          {() => (
+            <TransformComponent wrapperClass="!w-full !h-full" contentClass="!w-full !h-full">
+              <div
+                className="w-full h-full flex items-center justify-center cursor-crosshair outline-none touch-none select-none"
+                style={{ touchAction: "none" }}
+                aria-label="废土地图视图"
+                onClick={handleMapClick}
+                onTouchEnd={handleMapClick}
+              >
+                <SVG
+                  src={mapUrl}
+                  className="w-full h-full transition-opacity duration-700 select-none"
+                  style={{ opacity: loading ? 0 : 1 }}
+                  onLoad={() => setLoading(false)}
+                  onError={(error) => {
+                    console.error("Map Load Error:", error);
+                    if (mapUrl !== fallbackMapSrc) {
+                      setMapUrl(fallbackMapSrc);
+                      return;
                     }
+                    setLoading(false);
                   }}
-                >
-                  <SVG
-                    src={mapUrl}
-                    className="w-full h-full transition-opacity duration-700 select-none"
-                    style={{ opacity: loading ? 0 : 1 }}
-                    onLoad={() => setLoading(false)}
-                    onError={(error) => {
-                      console.error("Map Load Error:", error);
-                      if (mapUrl !== fallbackMapSrc) {
-                        setMapUrl(fallbackMapSrc);
-                        return;
-                      }
-                      setLoading(false);
-                    }}
-                    // 预处理 SVG: 给 Marker 加颜色或者类名 (可选)
-                    preProcessor={(code) => code.replace(/fill="#000000"/g, 'fill="#333333"')}
-                  />
-                  {loading && (
-                    <div className="absolute inset-0 flex items-center justify-center text-green-500 animate-pulse">
-                      LOADING TERRAIN DATA...
-                    </div>
-                  )}
-                </div>
-              </TransformComponent>
-            </>
+                  // 预处理 SVG: 给 Marker 加颜色或者类名 (可选)
+                  preProcessor={(code) => code.replace(/fill="#000000"/g, 'fill="#333333"')}
+                />
+                {loading && (
+                  <div className="absolute inset-0 flex items-center justify-center text-green-500 animate-pulse">
+                    LOADING TERRAIN DATA...
+                  </div>
+                )}
+              </div>
+            </TransformComponent>
           )}
         </TransformWrapper>
       </div>
