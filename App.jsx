@@ -1,5 +1,4 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { createPortal } from 'react-dom';
 import SVG from 'react-inlinesvg';
 import { TransformWrapper, TransformComponent } from 'react-zoom-pan-pinch';
 import { Radio, X, Terminal } from 'lucide-react';
@@ -76,7 +75,7 @@ const App = () => {
 
   return (
     <div
-      className="w-screen h-screen flex flex-col relative font-mono text-gray-200 bg-[#0b1020] overflow-hidden"
+      className="w-screen min-h-screen flex flex-col relative font-mono text-gray-200 bg-[#0b1020]"
       onKeyDown={handleKeyDown}
       tabIndex={0}
       aria-label="Echo map interface"
@@ -88,7 +87,7 @@ const App = () => {
       </header>
 
       {/* 地图区域 */}
-      <div className="flex-1 relative overflow-hidden">
+      <div className="flex-1 min-h-[60vh] relative overflow-hidden">
         <TransformWrapper
           initialScale={1.1}
           minScale={0.6}
@@ -138,116 +137,106 @@ const App = () => {
         </TransformWrapper>
       </div>
 
-      {/* 信息弹窗：固定定位 + 半透明遮罩，确保可见；使用 portal 到 body */}
-      {selectedMarker &&
-        createPortal(
-          <div className="fixed inset-0 z-50 pointer-events-none">
-            <div className="absolute inset-0 bg-black/30 backdrop-blur-[1px]" />
-            <div className="pointer-events-auto absolute right-3 top-16 sm:top-20 w-[min(440px,calc(100%-1.5rem))] sm:w-[420px] bg-black/92 border border-green-500/50 shadow-[0_0_24px_rgba(34,197,94,0.35)] backdrop-blur-lg rounded-md overflow-hidden animate-in fade-in duration-150">
-              <div className="bg-green-900/20 p-3 border-b border-green-500/30 flex justify-between items-center">
-                <h3 className="font-bold text-green-400 flex items-center gap-2">
-                  <Radio size={16} /> SIGNAL_DETECTED
-                </h3>
-                <button
-                  onClick={() => setSelectedMarker(null)}
-                  className="hover:text-white text-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 rounded"
-                  aria-label="关闭信号弹窗"
-                >
-                  <X size={18} />
-                </button>
+      {/* 下方信息栏（流式布局，避免被裁剪） */}
+      <div className="w-full bg-black/90 border-t border-green-500/30 text-gray-100 p-4 space-y-3">
+        {!selectedMarker && <div className="text-sm text-gray-400">点击任意信号标记以查看情报。</div>}
+        {selectedMarker && (
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="font-bold text-green-400 flex items-center gap-2">
+                <Radio size={16} /> SIGNAL_DETECTED
               </div>
-              <div className="p-4 space-y-3 text-sm max-h-[calc(100vh-120px)] overflow-y-auto">
-                <div>
-                  <label className="text-xs text-gray-500 block mb-1">IDENTIFIER</label>
-                  <div className="text-lg font-bold text-white leading-tight flex items-center gap-2">
-                    <span aria-hidden="true">{selectedMarker.icon}</span>
-                    <span>{selectedMarker.name}</span>
-                  </div>
-                </div>
-                
-                <div className="flex flex-wrap items-center gap-2 text-xs text-gray-400 uppercase tracking-wide">
-                  <span className="px-2 py-1 border border-green-500/40 rounded bg-green-900/10">{selectedMarker.type}</span>
-                  {selectedMarker.coordinates && (
-                    <span className="px-2 py-1 border border-gray-700 rounded bg-gray-900/40">
-                      {`x:${selectedMarker.coordinates.x} y:${selectedMarker.coordinates.y}`}
-                    </span>
-                  )}
-                </div>
+              <button
+                onClick={() => setSelectedMarker(null)}
+                className="hover:text-white text-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 rounded"
+                aria-label="关闭信号弹窗"
+              >
+                <X size={18} />
+              </button>
+            </div>
 
-                <div className="grid grid-cols-2 gap-2">
-                  <div className="bg-gray-900/70 p-2 rounded border border-gray-800">
-                    <label className="text-[10px] text-gray-500 block">RADIATION</label>
-                    <div className="text-yellow-500 font-mono">{selectedMarker.radiation}</div>
-                  </div>
-                  <div className="bg-gray-900/70 p-2 rounded border border-gray-800">
-                    <label className="text-[10px] text-gray-500 block">STATUS</label>
-                    <div
-                      className={clsx('font-mono', {
-                        'text-green-500': selectedMarker.status === 'ACTIVE',
-                        'text-red-500': selectedMarker.status !== 'ACTIVE'
-                      })}
-                    >
-                      {selectedMarker.status}
-                    </div>
-                  </div>
-                </div>
-
-                <div className="bg-gray-900/70 p-3 rounded border border-gray-800 leading-relaxed text-gray-200">
-                  {selectedMarker.note}
-                </div>
-
-                {(selectedMarker.dungeonUrl || selectedMarker.npcEmbed) && (
-                  <div className="space-y-3">
-                    {selectedMarker.dungeonUrl && (
-                      <div className="space-y-1">
-                        <label className="text-xs text-gray-500 block">DUNGEON MAP</label>
-                        <iframe
-                          src={selectedMarker.dungeonUrl}
-                          width="100%"
-                          height="240"
-                          title="Dungeon map"
-                          className="border border-gray-800 rounded bg-black"
-                          loading="lazy"
-                        />
-                      </div>
-                    )}
-                    {selectedMarker.npcEmbed && (
-                      <div className="space-y-1">
-                        <label className="text-xs text-gray-500 block">NPC / THREAT FEED</label>
-                        <iframe
-                          src={selectedMarker.npcEmbed}
-                          width="100%"
-                          height="300"
-                          title="NPC intel"
-                          className="border border-gray-800 rounded bg-black"
-                          loading="lazy"
-                        />
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                <button
-                  className="w-full bg-green-700/30 hover:bg-green-700/50 text-green-100 border border-green-600/60 py-2 text-xs uppercase tracking-wider transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 rounded"
-                  aria-label="建立信号连接"
-                >
-                  Establish Connection
-                </button>
+            <div>
+              <label className="text-xs text-gray-500 block mb-1">IDENTIFIER</label>
+              <div className="text-lg font-bold text-white leading-tight flex items-center gap-2">
+                <span aria-hidden="true">{selectedMarker.icon}</span>
+                <span>{selectedMarker.name}</span>
               </div>
             </div>
-          </div>,
-          document.body
+            
+            <div className="flex flex-wrap items-center gap-2 text-xs text-gray-400 uppercase tracking-wide">
+              <span className="px-2 py-1 border border-green-500/40 rounded bg-green-900/10">{selectedMarker.type}</span>
+              {selectedMarker.coordinates && (
+                <span className="px-2 py-1 border border-gray-700 rounded bg-gray-900/40">
+                  {`x:${selectedMarker.coordinates.x} y:${selectedMarker.coordinates.y}`}
+                </span>
+              )}
+            </div>
+
+            <div className="grid grid-cols-2 gap-2">
+              <div className="bg-gray-900/70 p-2 rounded border border-gray-800">
+                <label className="text-[10px] text-gray-500 block">RADIATION</label>
+                <div className="text-yellow-500 font-mono">{selectedMarker.radiation}</div>
+              </div>
+              <div className="bg-gray-900/70 p-2 rounded border border-gray-800">
+                <label className="text-[10px] text-gray-500 block">STATUS</label>
+                <div
+                  className={clsx('font-mono', {
+                    'text-green-500': selectedMarker.status === 'ACTIVE',
+                    'text-red-500': selectedMarker.status !== 'ACTIVE'
+                  })}
+                >
+                  {selectedMarker.status}
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-gray-900/70 p-3 rounded border border-gray-800 leading-relaxed text-gray-200">
+              {selectedMarker.note}
+            </div>
+
+            {(selectedMarker.dungeonUrl || selectedMarker.npcEmbed) && (
+              <div className="space-y-3">
+                {selectedMarker.dungeonUrl && (
+                  <div className="space-y-1">
+                    <label className="text-xs text-gray-500 block">DUNGEON MAP</label>
+                    <iframe
+                      src={selectedMarker.dungeonUrl}
+                      width="100%"
+                      height="240"
+                      title="Dungeon map"
+                      className="border border-gray-800 rounded bg-black"
+                      loading="lazy"
+                    />
+                  </div>
+                )}
+                {selectedMarker.npcEmbed && (
+                  <div className="space-y-1">
+                    <label className="text-xs text-gray-500 block">NPC / THREAT FEED</label>
+                    <iframe
+                      src={selectedMarker.npcEmbed}
+                      width="100%"
+                      height="300"
+                      title="NPC intel"
+                      className="border border-gray-800 rounded bg-black"
+                      loading="lazy"
+                    />
+                  </div>
+                )}
+              </div>
+            )}
+
+            <button
+              className="w-full bg-green-700/30 hover:bg-green-700/50 text-green-100 border border-green-600/60 py-2 text-xs uppercase tracking-wider transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 rounded"
+              aria-label="建立信号连接"
+            >
+              Establish Connection
+            </button>
+          </div>
         )}
+      </div>
 
       {/* 装饰性网格背景 (当SVG未加载时) */}
       {loading && <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-10 pointer-events-none"></div>}
-
-      {/* 调试：当前选中标记提示 */}
-      {selectedMarker && (
-        <div className="fixed left-3 top-16 sm:top-20 z-50 px-2 py-1 text-xs text-black bg-green-300 rounded shadow">
-          Selected: {selectedMarker.id}
-        </div>
-      )}
     </div>
   );
 };
