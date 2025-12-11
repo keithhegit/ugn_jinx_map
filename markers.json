@@ -11,7 +11,7 @@
   { "i": 10, "x": 951, "y": 511.2, "icon": "👁️", "type": "Unknown", "name": "marker-marker10", "note": "光学监测塔，镜面仍可用，能反射或聚焦阳光制造短时高温。" },
   { "i": 11, "x": 956.4, "y": 691.02, "icon": "👁️", "type": "Danger", "name": "伪装定居点", "note": "看起来像正常的幸存者营地，甚至还会发出友好的求救信号。但其实已被“干扰者”完全渗透，它们模仿人类的行为，只为捕食路过的拾荒者。" },
   { "i": 12, "x": 584.8, "y": 681.1, "icon": "👁️", "type": "Unknown", "name": "marker-marker12", "note": "高架观察巢，能俯瞰风暴带，偶尔可拦截寡头频段的散射信号。" },
-  { "i": 13, "x": 558, "y": 465.2, "icon": "📡", "type": "Tech", "name": "隐蔽的中继节点", "note": "“回声计划”的原型机测试点。由 Jinx 用旧微波炉变压器和从街机厅拆下的芯片改装而成，勉强能穿透电磁风暴发送短波信号。", "dungeonUrl": "https://watabou.github.io/one-page-dungeon/?seed=13" },
+  { "i": 13, "x": 558, "y": 465.2, "icon": "📡", "type": "Tech", "name": "隐蔽的中继节点", "note": "“回声计划”的原/?seed=13型机测试点。由 Jinx 用旧微波炉变压器和从街机厅拆下的芯片改装而成，勉强能穿透电磁风暴发送短波信号。", "dungeonUrl": "https://watabou.github.io/one-page-dungeon" },
   { "i": 14, "x": 505.6, "y": 579.6, "icon": "🔧", "type": "Unknown", "name": "marker-marker14", "note": "废弃维修棚，仍存有抗噪滤波组件与能量导轨，可提升临时无线中继的稳定度。" },
   { "i": 15, "x": 685.6, "y": 534.6, "icon": "🏠", "type": "Scavenge", "name": "工程师夫妇故居", "note": "Jinx 父母生前的实验室废墟。在这片烧焦的瓦砾下，埋藏着“回声计划”的原始蓝图和关于大寂静真相的加密数据板。", "dungeonUrl": "https://watabou.github.io/one-page-dungeon/?seed=51" },
   { "i": 16, "x": 276.4, "y": 559.6, "icon": "🏙️", "type": "Ruins", "name": "锈区：沉寂都市", "note": "曾经繁华的都市，现在是摇摇欲坠的钢铁丛林。Jinx 在这里的一具坠毁战机残骸中找到了制造“话匣子”的关键军用黑匣子。", "dungeonUrl": "https://watabou.github.io/one-page-dungeon/?seed=16" },
