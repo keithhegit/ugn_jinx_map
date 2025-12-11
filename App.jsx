@@ -8,8 +8,7 @@ import markers from './markers.json';
 const App = () => {
   const [selectedMarker, setSelectedMarker] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [pointerState, setPointerState] = useState(null); // 记录按下位置用于判断点击/拖拽
-   const [viewport, setViewport] = useState({ w: typeof window !== 'undefined' ? window.innerWidth : 1280, h: typeof window !== 'undefined' ? window.innerHeight : 720 });
+  const [viewport, setViewport] = useState({ w: typeof window !== 'undefined' ? window.innerWidth : 1280, h: typeof window !== 'undefined' ? window.innerHeight : 720 });
   const primaryMapSrc = import.meta.env.VITE_MAP_SRC || "https://pub-c98d5902eedf42f6a9765dfad981fd88.r2.dev/map/nomeiland_jinx.svg";
   const fallbackMapSrc = "/map.svg";
   const [mapUrl, setMapUrl] = useState(primaryMapSrc);
@@ -107,28 +106,8 @@ const App = () => {
                 className="w-full h-full flex items-center justify-center cursor-crosshair outline-none touch-none select-none"
                 style={{ touchAction: "none" }}
                 aria-label="废土地图视图"
-                onPointerDown={(e) => {
-                  setPointerState({ x: e.clientX, y: e.clientY, t: Date.now(), moved: false });
-                }}
-                onPointerMove={(e) => {
-                  if (!pointerState) return;
-                  const dx = e.clientX - pointerState.x;
-                  const dy = e.clientY - pointerState.y;
-                  if (Math.hypot(dx, dy) > 10 && !pointerState.moved) {
-                    setPointerState({ ...pointerState, moved: true });
-                  }
-                }}
-                onPointerUp={(e) => {
-                  if (!pointerState) return;
-                  const isTap =
-                    Math.hypot(e.clientX - pointerState.x, e.clientY - pointerState.y) < 10 &&
-                    Date.now() - pointerState.t < 600 &&
-                    !pointerState.moved;
-                  setPointerState(null);
-                  if (isTap) {
-                    handleMapClick(e);
-                  }
-                }}
+                onClick={handleMapClick}
+                onTouchEnd={handleMapClick}
               >
                 <SVG
                   src={mapUrl}
