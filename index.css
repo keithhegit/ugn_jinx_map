@@ -12,7 +12,7 @@ body {
   background-color: var(--bg-dark);
   color: #e0e0e0;
   margin: 0;
-  overflow: hidden; /* 防止页面本身滚动，交给地图组件处理 */
+  overflow: auto;
 }
 
 /* Azgaar 地图特定的交互样式 */
