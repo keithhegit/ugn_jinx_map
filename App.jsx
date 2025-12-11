@@ -140,15 +140,8 @@ const App = () => {
       {/* 装饰性网格背景 (当SVG未加载时) */}
       {loading && <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-10 pointer-events-none"></div>}
 
-      {/* 调试徽标，确认选中状态 */}
-      {selectedMarker && (
-        <div className="fixed left-3 top-16 sm:top-20 z-[9999] px-2 py-1 text-xs text-black bg-green-300 rounded shadow">
-          Selected: {selectedMarker.id}
-        </div>
-      )}
-
-      {/* 底部信息栏（非弹窗，持久占位） */}
-      <div className="absolute inset-x-0 bottom-0 z-30 bg-black/85 border-t border-green-500/30 p-4 backdrop-blur max-h-[30vh] overflow-y-auto">
+      {/* 底部信息栏（固定在视窗底部） */}
+      <div className="fixed inset-x-0 bottom-0 z-50 bg-black/85 border-t border-green-500/30 p-4 backdrop-blur max-h-[40vh] overflow-y-auto">
         {!selectedMarker && (
           <div className="text-sm text-gray-400">点击任意信号标记以查看情报。</div>
         )}
