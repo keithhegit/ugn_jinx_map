@@ -1,5 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import { createPortal } from 'react-dom';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import SVG from 'react-inlinesvg';
 import { TransformWrapper, TransformComponent } from 'react-zoom-pan-pinch';
 import { Radio, X, Terminal } from 'lucide-react';
@@ -14,6 +13,8 @@ const App = () => {
   const fallbackMapSrc = "/map.svg";
   const [mapUrl, setMapUrl] = useState(primaryMapSrc);
   const centerPoint = useMemo(() => ({ x: 456.5, y: 531.2 }), []);
+  const controlsRef = useRef(null);
+  const isMobile = viewport.w < 768;
 
   useEffect(() => {
     const handleResize = () => setViewport({ w: window.innerWidth, h: window.innerHeight });
@@ -52,6 +53,33 @@ const App = () => {
     };
   };
 
+  const panToMarker = useCallback(
+    (markerInfo) => {
+      if (!controlsRef.current || !markerInfo?.coordinates) return;
+      const { setTransform, state } = controlsRef.current;
+      if (!setTransform || !state) return;
+
+      const { scale, positionX, positionY } = state;
+      const markerX = markerInfo.coordinates.x;
+      const markerY = markerInfo.coordinates.y;
+
+      const panelWidth = isMobile ? 0 : 360;
+      const panelHeight = isMobile ? Math.min(viewport.h * 0.42, 360) : 0;
+
+      const targetX = isMobile ? viewport.w / 2 : panelWidth + (viewport.w - panelWidth) / 2;
+      const targetY = isMobile ? (viewport.h - panelHeight) / 2 : viewport.h / 2;
+
+      const currentX = markerX * scale + positionX;
+      const currentY = markerY * scale + positionY;
+
+      const deltaX = targetX - currentX;
+      const deltaY = targetY - currentY;
+
+      setTransform(positionX + deltaX, positionY + deltaY, scale, 200);
+    },
+    [isMobile, viewport.w, viewport.h]
+  );
+
   const handleMapClick = (event) => {
     // Azgaar 有的导出为 <g id="markerX">，有的导出为 <svg id="markerX">
     const markerElement = event.target.closest('[id^="marker"]');
@@ -61,6 +89,7 @@ const App = () => {
       if (markerInfo) {
         console.log("setSelectedMarker", markerInfo);
         setSelectedMarker(markerInfo);
+        panToMarker(markerInfo);
         return;
       }
     }
@@ -102,91 +131,95 @@ const App = () => {
           doubleClick={{ mode: "zoomIn", step: 0.3 }}
           panning={{ velocityDisabled: true, excluded: ["iframe", "button"] }}
         >
-          {() => (
-            <TransformComponent wrapperClass="!w-full !h-full" contentClass="!w-full !h-full">
-              <div
-                className="w-full h-full flex items-center justify-center cursor-crosshair outline-none touch-none select-none"
-                style={{ touchAction: "none" }}
-                aria-label="废土地图视图"
-                onClickCapture={handleMapClick}
-                onTouchEndCapture={handleMapClick}
-              >
-                <SVG
-                  src={mapUrl}
-                  className="w-full h-full transition-opacity duration-700 select-none"
-                  style={{ opacity: loading ? 0 : 1 }}
-                  onLoad={() => setLoading(false)}
-                  onError={(error) => {
-                    console.error("Map Load Error:", error);
-                    if (mapUrl !== fallbackMapSrc) {
-                      setMapUrl(fallbackMapSrc);
-                      return;
-                    }
-                    setLoading(false);
-                  }}
-                  // 预处理 SVG: 给 Marker 加颜色或者类名 (可选)
-                  preProcessor={(code) => code.replace(/fill="#000000"/g, 'fill="#333333"')}
-                />
-                {loading && (
-                  <div className="absolute inset-0 flex items-center justify-center text-green-500 animate-pulse">
-                    LOADING TERRAIN DATA...
-                  </div>
-                )}
-              </div>
-            </TransformComponent>
-          )}
+          {({ setTransform, state }) => {
+            controlsRef.current = { setTransform, state };
+            return (
+              <TransformComponent wrapperClass="!w-full !h-full" contentClass="!w-full !h-full">
+                <div
+                  className="w-full h-full flex items-center justify-center cursor-crosshair outline-none touch-none select-none"
+                  style={{ touchAction: "none" }}
+                  aria-label="废土地图视图"
+                  onClickCapture={handleMapClick}
+                  onTouchEndCapture={handleMapClick}
+                >
+                  <SVG
+                    src={mapUrl}
+                    className="w-full h-full transition-opacity duration-700 select-none"
+                    style={{ opacity: loading ? 0 : 1 }}
+                    onLoad={() => setLoading(false)}
+                    onError={(error) => {
+                      console.error("Map Load Error:", error);
+                      if (mapUrl !== fallbackMapSrc) {
+                        setMapUrl(fallbackMapSrc);
+                        return;
+                      }
+                      setLoading(false);
+                    }}
+                    // 预处理 SVG: 给 Marker 加颜色或者类名 (可选)
+                    preProcessor={(code) => code.replace(/fill="#000000"/g, 'fill="#333333"')}
+                  />
+                  {loading && (
+                    <div className="absolute inset-0 flex items-center justify-center text-green-500 animate-pulse">
+                      LOADING TERRAIN DATA...
+                    </div>
+                  )}
+                </div>
+              </TransformComponent>
+            );
+          }}
         </TransformWrapper>
       </div>
 
       {/* 装饰性网格背景 (当SVG未加载时) */}
       {loading && <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-10 pointer-events-none"></div>}
 
-      {/* 调试徽标，确认选中状态 */}
-      {selectedMarker && (
-        <div className="fixed left-3 top-16 sm:top-20 z-[9999] px-2 py-1 text-xs text-black bg-green-300 rounded shadow">
-          Selected: {selectedMarker.id}
-        </div>
-      )}
-
-      {/* 全屏遮罩弹窗（Portal，避免被遮挡） */}
-      {selectedMarker &&
-        createPortal(
-          <div
-            style={{
-              position: "fixed",
-              inset: 0,
-              zIndex: 9998,
-              background: "rgba(0,0,0,0.75)",
-              backdropFilter: "blur(3px)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
-            <div className="w-[min(560px,calc(100%-2rem))] bg-black border border-green-500/50 shadow-[0_0_24px_rgba(34,197,94,0.35)] rounded-md overflow-hidden">
-              <div className="bg-green-900/20 p-3 border-b border-green-500/30 flex justify-between items-center">
-                <div className="font-bold text-green-400 flex items-center gap-2">
+      {/* 战术情报面板：桌面侧栏 / 移动底抽屉 */}
+      <div
+        className={clsx(
+          "fixed z-40 transition-all duration-300 ease-out pointer-events-none",
+          isMobile
+            ? "left-2 right-2 bottom-2 max-h-[50vh] translate-y-full opacity-0"
+            : "top-20 left-4 w-[360px] max-h-[calc(100%-96px)] -translate-x-4 opacity-0",
+          selectedMarker && "translate-y-0 translate-x-0 opacity-100 pointer-events-auto"
+        )}
+        style={{
+          clipPath: "polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px)",
+        }}
+      >
+        <div className="h-full bg-black/75 backdrop-blur border border-green-500/40 shadow-[0_12px_30px_rgba(0,0,0,0.45)] rounded-md overflow-hidden">
+          {!selectedMarker && (
+            <div className="p-4 text-sm text-gray-400">点击任意信号标记以查看情报。</div>
+          )}
+          {selectedMarker && (
+            <div className="flex flex-col h-full">
+              <div className="bg-green-900/15 px-4 py-3 border-b border-green-500/30 flex items-center justify-between">
+                <div className="font-bold text-green-400 flex items-center gap-2 tracking-widest">
                   <Radio size={16} /> SIGNAL_DETECTED
                 </div>
                 <button
                   onClick={() => setSelectedMarker(null)}
                   className="hover:text-white text-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 rounded"
-                  aria-label="关闭信号弹窗"
+                  aria-label="关闭信号栏"
                 >
                   <X size={18} />
                 </button>
               </div>
-              <div className="p-4 space-y-3 text-sm">
+
+              <div className="p-4 space-y-3 text-sm overflow-y-auto">
                 <div>
                   <label className="text-xs text-gray-500 block mb-1">IDENTIFIER</label>
                   <div className="text-lg font-bold text-white leading-tight flex items-center gap-2">
-                    <span aria-hidden="true">{selectedMarker.icon}</span>
+                    <span aria-hidden="true" className="text-xl">
+                      {selectedMarker.icon}
+                    </span>
                     <span>{selectedMarker.name}</span>
                   </div>
                 </div>
 
-                <div className="flex flex-wrap items-center gap-2 text-xs text-gray-400 uppercase tracking-wide">
-                  <span className="px-2 py-1 border border-green-500/40 rounded bg-green-900/10">{selectedMarker.type}</span>
+                <div className="flex flex-wrap items-center gap-2 text-xs text-gray-300 uppercase tracking-wide">
+                  <span className="px-2 py-1 border border-green-500/40 rounded bg-green-900/15">
+                    {selectedMarker.type}
+                  </span>
                   {selectedMarker.coordinates && (
                     <span className="px-2 py-1 border border-gray-700 rounded bg-gray-900/40">
                       {`x:${selectedMarker.coordinates.x} y:${selectedMarker.coordinates.y}`}
@@ -197,39 +230,43 @@ const App = () => {
                 <div className="bg-gray-900/70 p-3 rounded border border-gray-800 leading-relaxed text-gray-200 whitespace-pre-wrap">
                   {selectedMarker.note}
                 </div>
-
-                {(() => {
-                  const targetLink =
-                    selectedMarker.dungeonUrl ||
-                    selectedMarker.npcEmbed ||
-                    (selectedMarker.type === "Sanctuary" ? "https://aitown.uggamer.com/" : null);
-                  return (
-                    <div className="flex gap-2">
-                      <button
-                        className="flex-1 bg-green-700/30 hover:bg-green-700/50 text-green-100 border border-green-600/60 py-2 text-xs uppercase tracking-wider transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 rounded disabled:opacity-40"
-                        aria-label="进入目标"
-                        onClick={() => {
-                          if (targetLink) window.open(targetLink, "_blank", "noreferrer");
-                        }}
-                        disabled={!targetLink}
-                      >
-                        进入
-                      </button>
-                      <button
-                        className="flex-1 bg-gray-700/40 hover:bg-gray-700/60 text-gray-100 border border-gray-600/60 py-2 text-xs uppercase tracking-wider transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 rounded"
-                        aria-label="关闭"
-                        onClick={() => setSelectedMarker(null)}
-                      >
-                        关闭
-                      </button>
-                    </div>
-                  );
-                })()}
               </div>
+
+              {(() => {
+                const targetLink =
+                  (selectedMarker.type === "Danger" || selectedMarker.icon === "👁️")
+                    ? "https://watabou.github.io/cave-generator/"
+                    : selectedMarker.type === "Sanctuary"
+                      ? "https://aitown.uggamer.com/"
+                      : selectedMarker.dungeonUrl ||
+                        selectedMarker.npcEmbed ||
+                        null;
+                return (
+                  <div className="px-4 pb-4 pt-2 flex gap-2">
+                    <button
+                      className="flex-1 bg-green-700/30 hover:bg-green-700/50 text-green-100 border border-green-600/60 py-2 text-xs uppercase tracking-wider transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 rounded disabled:opacity-40"
+                      aria-label="进入目标"
+                      onClick={() => {
+                        if (targetLink) window.open(targetLink, "_blank", "noreferrer");
+                      }}
+                      disabled={!targetLink}
+                    >
+                      进入
+                    </button>
+                    <button
+                      className="flex-1 bg-gray-700/40 hover:bg-gray-700/60 text-gray-100 border border-gray-600/60 py-2 text-xs uppercase tracking-wider transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 rounded"
+                      aria-label="关闭"
+                      onClick={() => setSelectedMarker(null)}
+                    >
+                      关闭
+                    </button>
+                  </div>
+                );
+              })()}
             </div>
-          </div>,
-          document.body
-        )}
+          )}
+        </div>
+      </div>
     </div>
   );
 };
