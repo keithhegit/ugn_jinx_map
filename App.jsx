@@ -1,5 +1,4 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { createPortal } from 'react-dom';
 import SVG from 'react-inlinesvg';
 import { TransformWrapper, TransformComponent } from 'react-zoom-pan-pinch';
 import { Radio, X, Terminal } from 'lucide-react';
@@ -148,88 +147,81 @@ const App = () => {
         </div>
       )}
 
-      {/* 全屏遮罩弹窗（Portal，避免被遮挡） */}
-      {selectedMarker &&
-        createPortal(
-          <div
-            style={{
-              position: "fixed",
-              inset: 0,
-              zIndex: 9998,
-              background: "rgba(0,0,0,0.75)",
-              backdropFilter: "blur(3px)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
-            <div className="w-[min(560px,calc(100%-2rem))] bg-black border border-green-500/50 shadow-[0_0_24px_rgba(34,197,94,0.35)] rounded-md overflow-hidden">
-              <div className="bg-green-900/20 p-3 border-b border-green-500/30 flex justify-between items-center">
-                <div className="font-bold text-green-400 flex items-center gap-2">
-                  <Radio size={16} /> SIGNAL_DETECTED
-                </div>
-                <button
-                  onClick={() => setSelectedMarker(null)}
-                  className="hover:text-white text-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 rounded"
-                  aria-label="关闭信号弹窗"
-                >
-                  <X size={18} />
-                </button>
+      {/* 底部信息栏（非弹窗，持久占位） */}
+      <div className="absolute inset-x-0 bottom-0 z-30 bg-black/85 border-t border-green-500/30 p-4 backdrop-blur max-h-[30vh] overflow-y-auto">
+        {!selectedMarker && (
+          <div className="text-sm text-gray-400">点击任意信号标记以查看情报。</div>
+        )}
+        {selectedMarker && (
+          <div className="space-y-3 text-sm">
+            <div className="flex items-center justify-between">
+              <div className="font-bold text-green-400 flex items-center gap-2 tracking-widest">
+                <Radio size={16} /> SIGNAL_DETECTED
               </div>
-              <div className="p-4 space-y-3 text-sm">
-                <div>
-                  <label className="text-xs text-gray-500 block mb-1">IDENTIFIER</label>
-                  <div className="text-lg font-bold text-white leading-tight flex items-center gap-2">
-                    <span aria-hidden="true">{selectedMarker.icon}</span>
-                    <span>{selectedMarker.name}</span>
-                  </div>
-                </div>
+              <button
+                onClick={() => setSelectedMarker(null)}
+                className="hover:text-white text-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 rounded"
+                aria-label="关闭信号栏"
+              >
+                <X size={18} />
+              </button>
+            </div>
 
-                <div className="flex flex-wrap items-center gap-2 text-xs text-gray-400 uppercase tracking-wide">
-                  <span className="px-2 py-1 border border-green-500/40 rounded bg-green-900/10">{selectedMarker.type}</span>
-                  {selectedMarker.coordinates && (
-                    <span className="px-2 py-1 border border-gray-700 rounded bg-gray-900/40">
-                      {`x:${selectedMarker.coordinates.x} y:${selectedMarker.coordinates.y}`}
-                    </span>
-                  )}
-                </div>
-
-                <div className="bg-gray-900/70 p-3 rounded border border-gray-800 leading-relaxed text-gray-200 whitespace-pre-wrap">
-                  {selectedMarker.note}
-                </div>
-
-                {(() => {
-                  const targetLink =
-                    selectedMarker.dungeonUrl ||
-                    selectedMarker.npcEmbed ||
-                    (selectedMarker.type === "Sanctuary" ? "https://aitown.uggamer.com/" : null);
-                  return (
-                    <div className="flex gap-2">
-                      <button
-                        className="flex-1 bg-green-700/30 hover:bg-green-700/50 text-green-100 border border-green-600/60 py-2 text-xs uppercase tracking-wider transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 rounded disabled:opacity-40"
-                        aria-label="进入目标"
-                        onClick={() => {
-                          if (targetLink) window.open(targetLink, "_blank", "noreferrer");
-                        }}
-                        disabled={!targetLink}
-                      >
-                        进入
-                      </button>
-                      <button
-                        className="flex-1 bg-gray-700/40 hover:bg-gray-700/60 text-gray-100 border border-gray-600/60 py-2 text-xs uppercase tracking-wider transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 rounded"
-                        aria-label="关闭"
-                        onClick={() => setSelectedMarker(null)}
-                      >
-                        关闭
-                      </button>
-                    </div>
-                  );
-                })()}
+            <div>
+              <label className="text-xs text-gray-500 block mb-1">IDENTIFIER</label>
+              <div className="text-lg font-bold text-white leading-tight flex items-center gap-2">
+                <span aria-hidden="true" className="text-xl">
+                  {selectedMarker.icon}
+                </span>
+                <span>{selectedMarker.name}</span>
               </div>
             </div>
-          </div>,
-          document.body
+
+            <div className="flex flex-wrap items-center gap-2 text-xs text-gray-300 uppercase tracking-wide">
+              <span className="px-2 py-1 border border-green-500/40 rounded bg-green-900/15">
+                {selectedMarker.type}
+              </span>
+              {selectedMarker.coordinates && (
+                <span className="px-2 py-1 border border-gray-700 rounded bg-gray-900/40">
+                  {`x:${selectedMarker.coordinates.x} y:${selectedMarker.coordinates.y}`}
+                </span>
+              )}
+            </div>
+
+            <div className="bg-gray-900/70 p-3 rounded border border-gray-800 leading-relaxed text-gray-200 whitespace-pre-wrap">
+              {selectedMarker.note}
+            </div>
+
+            {(() => {
+              const targetLink =
+                selectedMarker.dungeonUrl ||
+                selectedMarker.npcEmbed ||
+                (selectedMarker.type === "Sanctuary" ? "https://aitown.uggamer.com/" : null);
+              return (
+                <div className="flex gap-2">
+                  <button
+                    className="flex-1 bg-green-700/30 hover:bg-green-700/50 text-green-100 border border-green-600/60 py-2 text-xs uppercase tracking-wider transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 rounded disabled:opacity-40"
+                    aria-label="进入目标"
+                    onClick={() => {
+                      if (targetLink) window.open(targetLink, "_blank", "noreferrer");
+                    }}
+                    disabled={!targetLink}
+                  >
+                    进入
+                  </button>
+                  <button
+                    className="flex-1 bg-gray-700/40 hover:bg-gray-700/60 text-gray-100 border border-gray-600/60 py-2 text-xs uppercase tracking-wider transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 rounded"
+                    aria-label="关闭"
+                    onClick={() => setSelectedMarker(null)}
+                  >
+                    关闭
+                  </button>
+                </div>
+              );
+            })()}
+          </div>
         )}
+      </div>
     </div>
   );
 };
