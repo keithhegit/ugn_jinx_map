@@ -9,17 +9,93 @@ import markers from './markers.json';
 const App = () => {
   const [selectedMarker, setSelectedMarker] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [loadProgress, setLoadProgress] = useState(0);
   const [viewport, setViewport] = useState({ w: typeof window !== 'undefined' ? window.innerWidth : 1280, h: typeof window !== 'undefined' ? window.innerHeight : 720 });
   const primaryMapSrc = import.meta.env.VITE_MAP_SRC || "https://pub-c98d5902eedf42f6a9765dfad981fd88.r2.dev/map/nomeiland_jinx.svg";
   const fallbackMapSrc = "/map.svg";
-  const [mapUrl, setMapUrl] = useState(primaryMapSrc);
+  const [mapCode, setMapCode] = useState(null);
   const centerPoint = useMemo(() => ({ x: 456.5, y: 531.2 }), []);
+  const mapDimensions = { w: 1193, h: 1107 }; // Fixed map dimensions from SVG
+
+  useEffect(() => {
+    const fetchMap = async () => {
+        try {
+            setLoading(true);
+            setLoadProgress(5);
+            
+            // Try primary, then fallback
+            let response;
+            try {
+                response = await fetch(primaryMapSrc);
+                if (!response.ok) throw new Error("Primary map fetch failed");
+            } catch (e) {
+                console.warn("Falling back to local map", e);
+                response = await fetch(fallbackMapSrc);
+            }
+
+            if (!response.ok) throw new Error("Map load failed");
+
+            const contentLength = response.headers.get('content-length');
+            const total = parseInt(contentLength, 10);
+            let loaded = 0;
+
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder("utf-8");
+            let result = "";
+
+            while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+                
+                loaded += value.byteLength;
+                result += decoder.decode(value, { stream: true });
+                
+                if (total) {
+                    setLoadProgress(Math.min(Math.round((loaded / total) * 100), 99));
+                } else {
+                    // Fake progress if no content-length
+                    setLoadProgress((prev) => Math.min(prev + 10, 90));
+                }
+            }
+            
+            // Flush decoder
+            result += decoder.decode();
+            setMapCode(result);
+            setLoadProgress(100);
+            
+            // Small delay to smooth transition
+            setTimeout(() => setLoading(false), 500);
+
+        } catch (error) {
+            console.error("Map Load Error:", error);
+            setLoading(false); // Should show error state ideally
+        }
+    };
+
+    fetchMap();
+  }, []);
 
   useEffect(() => {
     const handleResize = () => setViewport({ w: window.innerWidth, h: window.innerHeight });
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
+
+  // Calculate optimal initial scale to cover the screen
+  const initialScale = useMemo(() => {
+      if (viewport.w < 768) {
+          // Mobile: Calculate scale to cover height
+          // SVG renders at width=100% (viewport.w). 
+          // SVG height = viewport.w / (mapW/mapH)
+          // Target height = viewport.h
+          // Scale = viewport.h / SVG height
+          const mapAspect = mapDimensions.w / mapDimensions.h;
+          const renderedHeight = viewport.w / mapAspect;
+          const scaleToCover = viewport.h / renderedHeight;
+          return Math.max(scaleToCover * 1.2, 2.5); // Ensure at least 2.5x or cover + 20%
+      }
+      return 1.1; // Desktop default
+  }, [viewport.w, viewport.h]);
 
   const parseMarkerNumericId = (markerId) => {
     const matched = markerId.match(/\d+/);
@@ -89,14 +165,16 @@ const App = () => {
 
       {/* 地图区域 */}
       <div className="flex-1 h-full relative overflow-hidden">
+        {/* 只在 mapCode 存在时渲染 TransformWrapper，避免初始 scale 计算错误 */}
+        {mapCode && (
         <TransformWrapper
-          initialScale={1.1}
+          initialScale={initialScale}
           minScale={0.2}
           maxScale={6}
           centerZoomedOut={false}
           limitToBounds={false}
-          initialPositionX={viewport.w / 2 - centerPoint.x}
-          initialPositionY={viewport.h / 2 - centerPoint.y}
+          initialPositionX={viewport.w / 2 - centerPoint.x * initialScale} // 修正：初始位置需要考虑 scale
+          initialPositionY={viewport.h / 2 - centerPoint.y * initialScale} // 修正：初始位置需要考虑 scale
           wheel={{ step: 0.12 }}
           pinch={{ step: 0.12 }}
           doubleClick={{ disabled: true }}
@@ -117,18 +195,10 @@ const App = () => {
                 onTouchEndCapture={handleMapClick}
               >
                 <SVG
-                  src={mapUrl}
+                  src={mapCode}
                   className="w-full h-full transition-opacity duration-700 select-none"
                   style={{ opacity: loading ? 0 : 1 }}
-                  onLoad={() => setLoading(false)}
-                  onError={(error) => {
-                    console.error("Map Load Error:", error);
-                    if (mapUrl !== fallbackMapSrc) {
-                      setMapUrl(fallbackMapSrc);
-                      return;
-                    }
-                    setLoading(false);
-                  }}
+                  // Removed onLoad/onError here as we handle fetching manually now
                   // 预处理 SVG: 强制添加 viewBox 并移除/重置 width 和 height，确保 SVG 能自适应容器大小
                   preProcessor={(code) => {
                     let newCode = code.replace(/fill="#000000"/g, 'fill="#333333"');
@@ -175,18 +245,31 @@ const App = () => {
                   }}
                 />
                 {loading && (
-                  <div className="absolute inset-0 flex items-center justify-center text-green-500 animate-pulse">
-                    LOADING TERRAIN DATA...
+                  <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#0b1020] z-50">
+                    <div className="text-green-500 animate-pulse font-bold tracking-widest mb-4">
+                      INITIALIZING TERRAIN DATA...
+                    </div>
+                    {/* Loading Bar */}
+                    <div className="w-64 h-2 bg-gray-800 rounded-full overflow-hidden border border-gray-700">
+                      <div 
+                        className="h-full bg-green-500 transition-all duration-200 ease-out"
+                        style={{ width: `${loadProgress}%` }}
+                      ></div>
+                    </div>
+                    <div className="mt-2 text-xs text-green-500/70 font-mono">
+                      {loadProgress}%
+                    </div>
                   </div>
                 )}
               </div>
             </TransformComponent>
           )}
         </TransformWrapper>
+        )}
       </div>
 
       {/* 装饰性网格背景 (当SVG未加载时) */}
-      {loading && <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-10 pointer-events-none"></div>}
+      {loading && <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-10 pointer-events-none z-40"></div>}
 
       {/* 调试徽标，确认选中状态 */}
       {selectedMarker && (
