@@ -82,20 +82,19 @@ const App = () => {
   }, []);
 
   // Calculate optimal initial scale to cover the screen
-  const initialScale = useMemo(() => {
+  const getInitialScale = () => {
+      const scaleX = viewport.w / mapDimensions.w;
+      const scaleY = viewport.h / mapDimensions.h;
+      const coverScale = Math.max(scaleX, scaleY);
+      
+      // 移动端可能需要额外放大一点以便看清细节
       if (viewport.w < 768) {
-          // Mobile: Calculate scale to cover height
-          // SVG renders at width=100% (viewport.w). 
-          // SVG height = viewport.w / (mapW/mapH)
-          // Target height = viewport.h
-          // Scale = viewport.h / SVG height
-          const mapAspect = mapDimensions.w / mapDimensions.h;
-          const renderedHeight = viewport.w / mapAspect;
-          const scaleToCover = viewport.h / renderedHeight;
-          return Math.max(scaleToCover * 1.2, 2.5); // Ensure at least 2.5x or cover + 20%
+          return Math.max(coverScale * 2.0, 1.2); 
       }
-      return 1.1; // Desktop default
-  }, [viewport.w, viewport.h]);
+      return Math.max(coverScale, 1.1);
+  };
+
+  const initialScale = useMemo(getInitialScale, [viewport.w, viewport.h]);
 
   const parseMarkerNumericId = (markerId) => {
     const matched = markerId.match(/\d+/);
@@ -173,30 +172,49 @@ const App = () => {
           maxScale={6}
           centerZoomedOut={false}
           limitToBounds={false}
-          initialPositionX={(viewport.w - mapDimensions.w * initialScale) / 2 - (centerPoint.x - mapDimensions.w / 2) * initialScale}
-          initialPositionY={(viewport.h - mapDimensions.h * initialScale) / 2 - (centerPoint.y - mapDimensions.h / 2) * initialScale}
           wheel={{ step: 0.12 }}
           pinch={{ step: 0.12 }}
           doubleClick={{ disabled: true }}
           panning={{ velocityDisabled: true, excluded: ["iframe", "button"] }}
+          onInit={(ref) => {
+             // Smart Centering Logic
+             const sanctuary = markers.find(m => m.name.includes("回声避难所") || m.type === "Sanctuary");
+             const target = sanctuary ? { x: sanctuary.x, y: sanctuary.y } : centerPoint;
+             
+             const scale = getInitialScale();
+             const targetX = (viewport.w - mapDimensions.w * scale) / 2 - (target.x - mapDimensions.w / 2) * scale;
+             const targetY = (viewport.h - mapDimensions.h * scale) / 2 - (target.y - mapDimensions.h / 2) * scale;
+             
+             ref.setTransform(targetX, targetY, scale);
+          }}
         >
           {() => (
             <TransformComponent 
               wrapperClass="!w-full !h-full" 
-              contentClass="!w-full !h-full"
+              contentClass=""
               wrapperStyle={{ touchAction: "none" }} // Ensure touch actions are handled by the library
-              contentStyle={{ willChange: "transform", touchAction: "none" }} 
+              contentStyle={{ 
+                touchAction: "none",
+                width: `${mapDimensions.w}px`,  // 强制固定逻辑宽度
+                height: `${mapDimensions.h}px`  // 强制固定逻辑高度
+              }} 
             >
               <div
-                className="w-full h-full flex items-center justify-center cursor-crosshair outline-none touch-none select-none"
-                style={{ touchAction: "none" }}
+                className="flex items-center justify-center cursor-crosshair outline-none touch-none select-none"
+                style={{ 
+                   touchAction: "none",
+                   width: mapDimensions.w,   // 内层也强制固定尺寸
+                   height: mapDimensions.h 
+                }}
                 aria-label="废土地图视图"
                 onClickCapture={handleMapClick}
                 onTouchEndCapture={handleMapClick}
               >
                 <SVG
                   src={mapCode}
-                  className="w-full h-full transition-opacity duration-700 select-none"
+                  className="transition-opacity duration-700 select-none" // 去掉 w-full h-full，使用固定尺寸
+                  width={mapDimensions.w}
+                  height={mapDimensions.h}
                   style={{ opacity: loading ? 0 : 1 }}
                   // Removed onLoad/onError here as we handle fetching manually now
                   // 预处理 SVG: 强制添加 viewBox 并移除/重置 width 和 height，确保 SVG 能自适应容器大小
