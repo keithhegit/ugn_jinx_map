@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import SVG from 'react-inlinesvg';
 import { TransformWrapper, TransformComponent } from 'react-zoom-pan-pinch';
-import { Radio, X, Terminal } from 'lucide-react';
+import { Radio, X, Terminal, Crosshair, Activity } from 'lucide-react';
 import clsx from 'clsx';
 import markers from './markers.json';
 
