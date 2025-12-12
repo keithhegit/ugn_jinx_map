@@ -213,12 +213,12 @@ const App = () => {
                 </div>
 
                 {/* Note (Red Box Area) */}
-                <div className="bg-black/20 p-4 rounded-xl border border-white/5 shadow-inner">
-                  <div className="flex items-center gap-2 text-[10px] text-gray-500 uppercase tracking-wider mb-2 font-bold">
+                <div className="bg-red-900/10 p-4 rounded-xl border border-red-500/30 shadow-inner">
+                  <div className="flex items-center gap-2 text-[10px] text-red-400 uppercase tracking-wider mb-2 font-bold">
                      <Terminal size={12} />
                      Intel Report
                   </div>
-                  <p className="text-sm text-gray-300 leading-relaxed font-sans text-justify">
+                  <p className="text-sm text-gray-200 leading-relaxed font-sans text-justify">
                     {selectedMarker.note}
                   </p>
                 </div>
