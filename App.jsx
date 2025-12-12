@@ -91,7 +91,7 @@ const App = () => {
       <div className="flex-1 h-full relative overflow-hidden">
         <TransformWrapper
           initialScale={1.1}
-          minScale={0.6}
+          minScale={0.5}
           maxScale={6}
           centerZoomedOut={false}
           limitToBounds={true}
@@ -99,11 +99,15 @@ const App = () => {
           initialPositionY={viewport.h / 2 - centerPoint.y}
           wheel={{ step: 0.12 }}
           pinch={{ step: 0.12 }}
-          doubleClick={{ mode: "zoomIn", step: 0.3 }}
+          doubleClick={{ disabled: true }}
           panning={{ velocityDisabled: true, excluded: ["iframe", "button"] }}
         >
           {() => (
-            <TransformComponent wrapperClass="!w-full !h-full" contentClass="!w-full !h-full">
+            <TransformComponent 
+              wrapperClass="!w-full !h-full" 
+              contentClass="!w-full !h-full"
+              contentStyle={{ willChange: "transform" }} // Performance optimization for mobile
+            >
               <div
                 className="w-full h-full flex items-center justify-center cursor-crosshair outline-none touch-none select-none"
                 style={{ touchAction: "none" }}
@@ -167,7 +171,7 @@ const App = () => {
             }}
           >
             {/* Card Container - Vertical Layout based on Reference */}
-            <div className="w-[min(380px,calc(100%-2rem))] bg-[#1a1f2e] border border-gray-700/50 shadow-[0_0_50px_rgba(0,0,0,0.5)] rounded-2xl overflow-hidden flex flex-col max-h-[90vh] relative animate-in zoom-in-95 duration-300">
+            <div className="w-[min(380px,calc(100%-2rem))] bg-[#1a1f2e] border border-gray-700/50 shadow-[0_0_50px_rgba(0,0,0,0.5)] rounded-2xl overflow-hidden flex flex-col max-h-[90vh] relative animate-in zoom-in-95 duration-300 will-change-transform">
               
               {/* 1. Close Button (Top Right, Red) */}
               <button
@@ -179,12 +183,12 @@ const App = () => {
               </button>
 
               {/* 2. Hero Section (Visual Placeholder) */}
-              <div className="h-48 bg-gradient-to-b from-[#0f131a] to-[#1a1f2e] flex items-center justify-center relative overflow-hidden shrink-0">
+              <div className="h-32 sm:h-48 bg-gradient-to-b from-[#0f131a] to-[#1a1f2e] flex items-center justify-center relative overflow-hidden shrink-0">
                 {/* Background Pattern */}
                 <div className="absolute inset-0 opacity-20 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-green-900/40 via-transparent to-transparent"></div>
                 
                 {/* Large Icon Display */}
-                <div className="text-8xl filter drop-shadow-[0_0_20px_rgba(34,197,94,0.4)] transform hover:scale-110 transition-transform duration-500 cursor-default select-none">
+                <div className="text-6xl sm:text-8xl filter drop-shadow-[0_0_20px_rgba(34,197,94,0.4)] transform hover:scale-110 transition-transform duration-500 cursor-default select-none">
                   {selectedMarker.icon}
                 </div>
                 
