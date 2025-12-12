@@ -156,69 +156,95 @@ const App = () => {
               position: "fixed",
               inset: 0,
               zIndex: 9998,
-              background: "rgba(0,0,0,0.75)",
-              backdropFilter: "blur(3px)",
+              background: "rgba(0,0,0,0.6)",
+              backdropFilter: "blur(4px)",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
             }}
+            onClick={(e) => {
+              // 点击遮罩关闭 (可选，如果用户想保留这个习惯)
+              if (e.target === e.currentTarget) setSelectedMarker(null);
+            }}
           >
-            <div className="w-[min(560px,calc(100%-2rem))] bg-black border border-green-500/50 shadow-[0_0_24px_rgba(34,197,94,0.35)] rounded-md overflow-hidden">
-              <div className="bg-green-900/20 p-3 border-b border-green-500/30 flex justify-between items-center">
-                <div className="font-bold text-green-400 flex items-center gap-2">
-                  <Radio size={16} /> SIGNAL_DETECTED
+            {/* Game UI Container */}
+            <div className="w-[min(480px,calc(100%-2rem))] bg-[#0f131a] border border-white/10 shadow-2xl rounded-lg overflow-hidden relative font-sans animate-in fade-in zoom-in-95 duration-200">
+              
+              {/* Top Decorative Line */}
+              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-green-500/50 to-transparent opacity-50"></div>
+
+              {/* Content Padding */}
+              <div className="p-6">
+                
+                {/* Header Section */}
+                <div className="flex justify-between items-start mb-4">
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2 text-green-500 text-xs font-bold tracking-[0.15em] uppercase">
+                      <Radio size={14} className="animate-pulse" />
+                      SIGNAL_DETECTED
+                    </div>
+                    <div className="text-[10px] text-gray-500 font-mono tracking-widest uppercase pl-0.5">
+                      IDENTIFIER
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => setSelectedMarker(null)}
+                    className="text-gray-500 hover:text-white transition-colors p-1 hover:bg-white/5 rounded"
+                    aria-label="关闭"
+                  >
+                    <X size={20} />
+                  </button>
                 </div>
-                <button
-                  onClick={() => setSelectedMarker(null)}
-                  className="hover:text-white text-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 rounded"
-                  aria-label="关闭信号弹窗"
-                >
-                  <X size={18} />
-                </button>
-              </div>
-              <div className="p-4 space-y-3 text-sm">
-                <div>
-                  <label className="text-xs text-gray-500 block mb-1">IDENTIFIER</label>
-                  <div className="text-lg font-bold text-white leading-tight flex items-center gap-2">
-                    <span aria-hidden="true">{selectedMarker.icon}</span>
-                    <span>{selectedMarker.name}</span>
+
+                {/* Main Info */}
+                <div className="mb-4">
+                  <h2 className="text-xl font-bold text-white flex items-center gap-3 mb-2">
+                    <span className="text-2xl filter drop-shadow-lg">{selectedMarker.icon}</span>
+                    <span className="tracking-wide">{selectedMarker.name}</span>
+                  </h2>
+                  
+                  <div className="flex items-center gap-3 text-xs font-mono text-gray-400">
+                    <span className="text-green-400/80 font-semibold">{selectedMarker.type}</span>
+                    {selectedMarker.coordinates && (
+                      <span className="opacity-60">
+                        x:{selectedMarker.coordinates.x} y:{selectedMarker.coordinates.y}
+                      </span>
+                    )}
                   </div>
                 </div>
 
-                <div className="flex flex-wrap items-center gap-2 text-xs text-gray-400 uppercase tracking-wide">
-                  <span className="px-2 py-1 border border-green-500/40 rounded bg-green-900/10">{selectedMarker.type}</span>
-                  {selectedMarker.coordinates && (
-                    <span className="px-2 py-1 border border-gray-700 rounded bg-gray-900/40">
-                      {`x:${selectedMarker.coordinates.x} y:${selectedMarker.coordinates.y}`}
-                    </span>
-                  )}
-                </div>
-
-                <div className="bg-gray-900/70 p-3 rounded border border-gray-800 leading-relaxed text-gray-200 whitespace-pre-wrap">
+                {/* Description Box */}
+                <div className="bg-black/30 border border-white/5 rounded p-3 mb-6 text-sm text-gray-300 leading-relaxed shadow-inner">
                   {selectedMarker.note}
                 </div>
 
+                {/* Action Buttons */}
                 {(() => {
                   const targetLink =
                     selectedMarker.dungeonUrl ||
                     selectedMarker.npcEmbed ||
                     (selectedMarker.type === "Sanctuary" ? "https://aitown.uggamer.com/" : null);
+                  
                   return (
-                    <div className="flex gap-2">
+                    <div className="grid grid-cols-2 gap-3">
                       <button
-                        className="flex-1 bg-green-700/30 hover:bg-green-700/50 text-green-100 border border-green-600/60 py-2 text-xs uppercase tracking-wider transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 rounded disabled:opacity-40"
-                        aria-label="进入目标"
                         onClick={() => {
                           if (targetLink) window.open(targetLink, "_blank", "noreferrer");
                         }}
                         disabled={!targetLink}
+                        className={clsx(
+                          "py-2.5 px-4 rounded text-xs font-bold tracking-widest uppercase transition-all duration-200 flex items-center justify-center gap-2",
+                          targetLink 
+                            ? "bg-green-600 hover:bg-green-500 text-white shadow-[0_0_15px_rgba(22,163,74,0.3)] hover:shadow-[0_0_20px_rgba(22,163,74,0.5)]" 
+                            : "bg-gray-800 text-gray-500 cursor-not-allowed border border-white/5"
+                        )}
                       >
                         进入
                       </button>
+                      
                       <button
-                        className="flex-1 bg-gray-700/40 hover:bg-gray-700/60 text-gray-100 border border-gray-600/60 py-2 text-xs uppercase tracking-wider transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 rounded"
-                        aria-label="关闭"
                         onClick={() => setSelectedMarker(null)}
+                        className="py-2.5 px-4 rounded text-xs font-bold tracking-widest uppercase transition-all duration-200 bg-white/5 hover:bg-white/10 text-gray-300 hover:text-white border border-white/5 hover:border-white/10"
                       >
                         关闭
                       </button>
