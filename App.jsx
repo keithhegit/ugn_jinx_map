@@ -173,8 +173,8 @@ const App = () => {
           maxScale={6}
           centerZoomedOut={false}
           limitToBounds={false}
-          initialPositionX={viewport.w / 2 - centerPoint.x * initialScale} // 修正：初始位置需要考虑 scale
-          initialPositionY={viewport.h / 2 - centerPoint.y * initialScale} // 修正：初始位置需要考虑 scale
+          initialPositionX={(viewport.w - mapDimensions.w * initialScale) / 2 - (centerPoint.x - mapDimensions.w / 2) * initialScale}
+          initialPositionY={(viewport.h - mapDimensions.h * initialScale) / 2 - (centerPoint.y - mapDimensions.h / 2) * initialScale}
           wheel={{ step: 0.12 }}
           pinch={{ step: 0.12 }}
           doubleClick={{ disabled: true }}
