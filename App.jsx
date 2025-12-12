@@ -128,17 +128,36 @@ const App = () => {
                     }
                     setLoading(false);
                   }}
-                  // 预处理 SVG: 给 Marker 加颜色或者类名 (可选)，并修复缺失 viewBox 的问题
+                  // 预处理 SVG: 强制添加 viewBox 并移除/重置 width 和 height，确保 SVG 能自适应容器大小
                   preProcessor={(code) => {
                     let newCode = code.replace(/fill="#000000"/g, 'fill="#333333"');
-                    // 自动检测并修复缺失的 viewBox，解决移动端地图被裁剪/无法拖动显示全貌的问题
-                    if (!newCode.includes('viewBox')) {
-                       const widthMatch = newCode.match(/width="(\d+)"/);
-                       const heightMatch = newCode.match(/height="(\d+)"/);
-                       if (widthMatch && heightMatch) {
-                          newCode = newCode.replace('<svg', `<svg viewBox="0 0 ${widthMatch[1]} ${heightMatch[1]}"`);
+                    
+                    // 1. 提取原始宽高
+                    const widthMatch = newCode.match(/width="([^"]+)"/);
+                    const heightMatch = newCode.match(/height="([^"]+)"/);
+                    
+                    // 2. 如果没有 viewBox，则根据宽高生成 viewBox
+                    if (!newCode.includes('viewBox') && widthMatch && heightMatch) {
+                       // 确保提取的是数字（处理可能带单位的情况，虽然 Azgaar 通常是纯数字）
+                       const w = parseFloat(widthMatch[1]);
+                       const h = parseFloat(heightMatch[1]);
+                       if (!isNaN(w) && !isNaN(h)) {
+                          newCode = newCode.replace('<svg', `<svg viewBox="0 0 ${w} ${h}"`);
                        }
                     }
+                    
+                    // 3. 强制移除或重写 width/height 为 100%，防止 SVG 自身尺寸限制导致裁剪
+                    // 这里的正则替换会把原有的 width="..." height="..." 替换掉
+                    newCode = newCode.replace(/width="[^"]*"/, 'width="100%"').replace(/height="[^"]*"/, 'height="100%"');
+                    
+                    // 如果原代码中没有 width/height（虽然少见），确保加上
+                    if (!newCode.includes('width="100%"')) {
+                       newCode = newCode.replace('<svg', '<svg width="100%"');
+                    }
+                    if (!newCode.includes('height="100%"')) {
+                       newCode = newCode.replace('<svg', '<svg height="100%"');
+                    }
+
                     return newCode;
                   }}
                 />
