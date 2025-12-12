@@ -106,7 +106,8 @@ const App = () => {
             <TransformComponent 
               wrapperClass="!w-full !h-full" 
               contentClass="!w-full !h-full"
-              contentStyle={{ willChange: "transform" }} // Performance optimization for mobile
+              wrapperStyle={{ touchAction: "none" }} // Ensure touch actions are handled by the library
+              contentStyle={{ willChange: "transform", touchAction: "none" }} 
             >
               <div
                 className="w-full h-full flex items-center justify-center cursor-crosshair outline-none touch-none select-none"
@@ -133,12 +134,11 @@ const App = () => {
                     let newCode = code.replace(/fill="#000000"/g, 'fill="#333333"');
                     
                     // 1. 提取原始宽高
-                    const widthMatch = newCode.match(/width="([^"]+)"/);
-                    const heightMatch = newCode.match(/height="([^"]+)"/);
+                    const widthMatch = newCode.match(/(?:^|\s)width="([^"]+)"/);
+                    const heightMatch = newCode.match(/(?:^|\s)height="([^"]+)"/);
                     
                     // 2. 如果没有 viewBox，则根据宽高生成 viewBox
                     if (!newCode.includes('viewBox') && widthMatch && heightMatch) {
-                       // 确保提取的是数字（处理可能带单位的情况，虽然 Azgaar 通常是纯数字）
                        const w = parseFloat(widthMatch[1]);
                        const h = parseFloat(heightMatch[1]);
                        if (!isNaN(w) && !isNaN(h)) {
@@ -146,16 +146,21 @@ const App = () => {
                        }
                     }
                     
-                    // 3. 强制移除或重写 width/height 为 100%，防止 SVG 自身尺寸限制导致裁剪
-                    // 这里的正则替换会把原有的 width="..." height="..." 替换掉
-                    newCode = newCode.replace(/width="[^"]*"/, 'width="100%"').replace(/height="[^"]*"/, 'height="100%"');
+                    // 3. 强制移除或重写 width/height 为 100%
+                    // 使用更精确的正则，避免误伤 stroke-width 等属性
+                    newCode = newCode.replace(/(?:^|\s)width="[^"]*"/, ' width="100%"')
+                                     .replace(/(?:^|\s)height="[^"]*"/, ' height="100%"');
                     
-                    // 如果原代码中没有 width/height（虽然少见），确保加上
                     if (!newCode.includes('width="100%"')) {
                        newCode = newCode.replace('<svg', '<svg width="100%"');
                     }
                     if (!newCode.includes('height="100%"')) {
                        newCode = newCode.replace('<svg', '<svg height="100%"');
+                    }
+                    
+                    // 4. 确保 preserveAspectRatio 设置为 xMidYMid meet (默认)，防止变形
+                    if (!newCode.includes('preserveAspectRatio')) {
+                        newCode = newCode.replace('<svg', '<svg preserveAspectRatio="xMidYMid meet"');
                     }
 
                     return newCode;
