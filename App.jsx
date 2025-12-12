@@ -133,37 +133,45 @@ const App = () => {
                   preProcessor={(code) => {
                     let newCode = code.replace(/fill="#000000"/g, 'fill="#333333"');
                     
-                    // 1. 提取原始宽高
-                    const widthMatch = newCode.match(/(?:^|\s)width="([^"]+)"/);
-                    const heightMatch = newCode.match(/(?:^|\s)height="([^"]+)"/);
-                    
+                    // 正则匹配 <svg ... > 开头标签，捕获属性部分
+                    const svgTagMatch = newCode.match(/<svg([^>]*)>/);
+                    if (!svgTagMatch) return newCode;
+
+                    const oldSvgTag = svgTagMatch[0];
+                    const attributes = svgTagMatch[1];
+
+                    // 1. 提取原始宽高和 viewBox
+                    const widthMatch = attributes.match(/width=["']([^"']+)["']/);
+                    const heightMatch = attributes.match(/height=["']([^"']+)["']/);
+                    const viewBoxMatch = attributes.match(/viewBox=["']([^"']+)["']/);
+
+                    let width = widthMatch ? parseFloat(widthMatch[1]) : null;
+                    let height = heightMatch ? parseFloat(heightMatch[1]) : null;
+
                     // 2. 如果没有 viewBox，则根据宽高生成 viewBox
-                    if (!newCode.includes('viewBox') && widthMatch && heightMatch) {
-                       const w = parseFloat(widthMatch[1]);
-                       const h = parseFloat(heightMatch[1]);
-                       if (!isNaN(w) && !isNaN(h)) {
-                          newCode = newCode.replace('<svg', `<svg viewBox="0 0 ${w} ${h}"`);
-                       }
-                    }
-                    
-                    // 3. 强制移除或重写 width/height 为 100%
-                    // 使用更精确的正则，避免误伤 stroke-width 等属性
-                    newCode = newCode.replace(/(?:^|\s)width="[^"]*"/, ' width="100%"')
-                                     .replace(/(?:^|\s)height="[^"]*"/, ' height="100%"');
-                    
-                    if (!newCode.includes('width="100%"')) {
-                       newCode = newCode.replace('<svg', '<svg width="100%"');
-                    }
-                    if (!newCode.includes('height="100%"')) {
-                       newCode = newCode.replace('<svg', '<svg height="100%"');
-                    }
-                    
-                    // 4. 确保 preserveAspectRatio 设置为 xMidYMid meet (默认)，防止变形
-                    if (!newCode.includes('preserveAspectRatio')) {
-                        newCode = newCode.replace('<svg', '<svg preserveAspectRatio="xMidYMid meet"');
+                    let newAttributes = attributes;
+                    if (!viewBoxMatch && width && height && !isNaN(width) && !isNaN(height)) {
+                        newAttributes += ` viewBox="0 0 ${width} ${height}"`;
                     }
 
-                    return newCode;
+                    // 3. 强制移除或重写 width/height 为 100%
+                    // 先移除旧的 width/height
+                    newAttributes = newAttributes.replace(/\s*width=["'][^"']*["']/g, '');
+                    newAttributes = newAttributes.replace(/\s*height=["'][^"']*["']/g, '');
+                    
+                    // 添加新的 width/height
+                    newAttributes += ' width="100%" height="100%"';
+
+                    // 4. 确保 preserveAspectRatio 设置为 xMidYMid meet (默认)，防止变形
+                    if (!newAttributes.includes('preserveAspectRatio')) {
+                        newAttributes += ' preserveAspectRatio="xMidYMid meet"';
+                    }
+
+                    // 构造新的 SVG 标签
+                    const newSvgTag = `<svg ${newAttributes}>`;
+                    
+                    // 替换旧的 SVG 标签
+                    return newCode.replace(oldSvgTag, newSvgTag);
                   }}
                 />
                 {loading && (
