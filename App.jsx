@@ -91,10 +91,10 @@ const App = () => {
       <div className="flex-1 h-full relative overflow-hidden">
         <TransformWrapper
           initialScale={1.1}
-          minScale={0.5}
+          minScale={0.2}
           maxScale={6}
           centerZoomedOut={false}
-          limitToBounds={true}
+          limitToBounds={false}
           initialPositionX={viewport.w / 2 - centerPoint.x}
           initialPositionY={viewport.h / 2 - centerPoint.y}
           wheel={{ step: 0.12 }}
@@ -128,8 +128,19 @@ const App = () => {
                     }
                     setLoading(false);
                   }}
-                  // 预处理 SVG: 给 Marker 加颜色或者类名 (可选)
-                  preProcessor={(code) => code.replace(/fill="#000000"/g, 'fill="#333333"')}
+                  // 预处理 SVG: 给 Marker 加颜色或者类名 (可选)，并修复缺失 viewBox 的问题
+                  preProcessor={(code) => {
+                    let newCode = code.replace(/fill="#000000"/g, 'fill="#333333"');
+                    // 自动检测并修复缺失的 viewBox，解决移动端地图被裁剪/无法拖动显示全貌的问题
+                    if (!newCode.includes('viewBox')) {
+                       const widthMatch = newCode.match(/width="(\d+)"/);
+                       const heightMatch = newCode.match(/height="(\d+)"/);
+                       if (widthMatch && heightMatch) {
+                          newCode = newCode.replace('<svg', `<svg viewBox="0 0 ${widthMatch[1]} ${heightMatch[1]}"`);
+                       }
+                    }
+                    return newCode;
+                  }}
                 />
                 {loading && (
                   <div className="absolute inset-0 flex items-center justify-center text-green-500 animate-pulse">
