@@ -1,5 +1,5 @@
 [
-  { "i": 1, "x": 456.5, "y": 531.2, "icon": "🛡️", "type": "Sanctuary", "name": "回声避难所-01", "note": "Jinx 建立的第一个安全港。这里不仅有物理护盾防御“干扰者”，还运行着废土上唯一的自由局域网。", "dungeonUrl": "https://aitown.keithhe.com" },
+  { "i": 1, "x": 456.5, "y": 531.2, "icon": "🛡️", "type": "Sanctuary", "name": "回声避难所-01", "note": "Jinx 建立的第一个安全港。这里不仅有物理护盾防御“干扰者”，还运行着废土上唯一的自由局域网。", "dungeonUrl": "https://aitown.uggamer.com" },
   { "i": 2, "x": 647.4, "y": 377.8, "icon": "💧", "type": "Unknown", "name": "marker-marker2", "note": "山麓冷泉，补给队常在此取水，传言水中夹带旧时代金属离子。" },
   { "i": 3, "x": 887.5, "y": 547.5, "icon": "⛏️", "type": "Unknown", "name": "marker-marker3", "note": "被弃用的斜井，入口封死但通风井仍有热气，似乎还在深处运转某种机械。" },
   { "i": 4, "x": 168.37, "y": 653.78, "icon": "🏙️", "type": "Ruins", "name": "旧世界废墟", "note": "这一片废墟充满了未知的危险，也是拾荒者的天堂。" },
